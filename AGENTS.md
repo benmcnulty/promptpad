@@ -22,6 +22,23 @@ This is the umbrella guide for all agents (Codex, Claude Code, Copilot). Follow 
   - Refine: “Generate a structured prompt from `input`. Keep temp ≤0.3. Return `{ output, usage }`.”
   - Reinforce: “Tighten coordination of `draft` (goals, constraints, tone, variables). Return full `output` and minimal `patch` list.”
 
+## Contracts (Frozen)
+- Endpoints:
+  - `GET /api/models`
+  - `POST /api/refine` body `{ mode: "refine" | "reinforce", input?, draft?, model, temperature }` → `{ output, usage, patch? }`
+- Canonical response example:
+```
+{
+  "output": "<string>",
+  "usage": { "input_tokens": <number>, "output_tokens": <number> },
+  "patch": [
+    { "op": "replace", "from": [<start>, <end>], "to": "<text>" }
+  ]
+}
+```
+- Schemas: `docs/agents/schemas/api-contract.schema.json`, `docs/agents/schemas/patch.schema.json`
+- Patch ops are compact text‑range entries; no contract drift without ADR.
+
 ## PR Checklist (paste into description)
 - [ ] Scope focused; branch rebased on `main`
 - [ ] Devlog added: `docs/devlog/PR-<number>.md`

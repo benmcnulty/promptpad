@@ -274,4 +274,33 @@
       }
     }
   ]
+  ,
+  "invalidExamples": [
+    {
+      "title": "Invalid Refine Request (missing input)",
+      "description": "POST /api/refine with mode=refine but no input",
+      "data": {
+        "mode": "refine",
+        "model": "gpt-oss:20b",
+        "temperature": 0.2
+      }
+    },
+    {
+      "title": "Invalid Temperature (>0.3)",
+      "description": "Temperature exceeds contract maximum",
+      "data": {
+        "mode": "reinforce",
+        "draft": "text",
+        "model": "gpt-oss:20b",
+        "temperature": 0.5
+      }
+    },
+    {
+      "title": "Invalid Response (missing usage)",
+      "description": "Response must include usage",
+      "data": {
+        "output": "text only"
+      }
+    }
+  ]
 }

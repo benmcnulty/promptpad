@@ -7,6 +7,23 @@ Purpose: Contribute small, precise diffs that preserve core invariants and pass 
 - Keep local‑first defaults: Ollama, `gpt-oss:20b`, temperature ~0.2 (≤0.3 unless justified).
 - Only two operations exist: Refine and Reinforce. The UI is single‑screen with live token counts and Undo/Redo via `localStorage`.
 
+### Contracts (Frozen)
+- Endpoints:
+  - `GET /api/models`
+  - `POST /api/refine` body `{ mode: "refine" | "reinforce", input?, draft?, model, temperature }` → `{ output, usage, patch? }`
+- Canonical response example:
+```
+{
+  "output": "<string>",
+  "usage": { "input_tokens": <number>, "output_tokens": <number> },
+  "patch": [
+    { "op": "replace", "from": [<start>, <end>], "to": "<text>" }
+  ]
+}
+```
+- Schemas: `docs/agents/schemas/api-contract.schema.json`, `docs/agents/schemas/patch.schema.json`
+- Do not alter endpoints or patch shape without an ADR.
+
 ### 2) Change Patterns to Prefer
 - Small, single‑responsibility diffs; avoid cross‑cutting refactors.
 - Test‑first for `lib/diff.ts`, `lib/history.ts`, `lib/tokens/*`; update tests alongside changes.

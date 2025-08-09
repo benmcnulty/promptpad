@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Added
+- Pre-flight review docs: `docs/review/gap_analysis.md`, `docs/review/optimizations.md`
+- Contracts sections in `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` with canonical example
+- AIDEVOPS: new sections for Contracts & Schemas and Live Dev UX Contract (StatusBar + dev shell expectations)
+- Test Strategy: Mock Ollama CI toggle and Patch Edge-Case Fixtures list
+- Schemas: invalidExamples and edge-case examples (CRLF/Unicode/overlaps) in API and Patch schemas
+- Devlog entry for this PR: `docs/devlog/PR-0003.md`
 - Initial build plan artifacts in `docs/plan/` with comprehensive development strategy
 - Complete PR sequence (9 PRs) with DoR/DoD definitions and verification commands  
 - Architecture documentation with system diagram and invariants checklist
@@ -19,3 +25,4 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ### Changed
 - Align agent guidance with AIDEVOPS: updated `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`; added devlog scaffold.
+- Harmonized core library coverage targets to ≥80% across Test Strategy to match invariants

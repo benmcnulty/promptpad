@@ -24,7 +24,7 @@ This document defines comprehensive testing approach for Promptpad MVP, emphasiz
 ### Unit Tests (≥80% coverage required)
 
 #### lib/diff.ts
-**Target Coverage:** 85%
+**Target Coverage:** 80%
 ```javascript
 // Core scenarios
 - Text diff generation (add, delete, modify)
@@ -47,7 +47,7 @@ This document defines comprehensive testing approach for Promptpad MVP, emphasiz
 ```
 
 #### lib/history.ts  
-**Target Coverage:** 85%
+**Target Coverage:** 80%
 ```javascript
 // Core operations
 - Push/undo/redo stack operations
@@ -253,6 +253,18 @@ pnpm test --coverage --coverageThreshold='{
 "a".repeat(10000)  // very long single line
 ```
 
+### Patch Edge-Case Fixtures
+- CRLF lines and mixed endings: `"Line 1\r\nLine 2\nLine 3"`
+- Astral-plane Unicode: `"Prompt 🚀✨ with emoji and 𐐷 characters"`
+- Empty/no-op patch: `[]` or `{ op: "replace", from: [5,5], to: "" }`
+- Overlapping ranges (should be rejected):
+  ```json
+  [
+    {"op":"replace","from":[10,20],"to":"A"},
+    {"op":"delete","from":[15,25]}
+  ]
+  ```
+
 ### Mock API Responses
 ```javascript
 // Successful generation
@@ -280,8 +292,8 @@ pnpm test --coverage --coverageThreshold='{
 ## Coverage Enforcement
 
 ### Required Thresholds
-- **lib/diff.ts**: 85% lines, 80% branches
-- **lib/history.ts**: 85% lines, 80% branches  
+- **lib/diff.ts**: 80% lines, 80% branches
+- **lib/history.ts**: 80% lines, 80% branches  
 - **lib/tokens/***: 80% lines, 75% branches
 - **API routes**: 100% lines, 90% branches
 - **Overall project**: 70% lines (excluding UI components)
@@ -335,6 +347,18 @@ pnpm test
 - **Unit tests**: Mock all external dependencies
 - **Integration tests**: Real Ollama for API contract validation
 - **Component tests**: Mock heavy dependencies, real UI interactions
+
+### Mock Ollama (CI Toggle)
+- Environment toggle: `USE_MOCK_OLLAMA=true` in CI to bypass local service
+- Expected fixtures:
+  - `models.json`: list with `gpt-oss:20b` as default
+  - `refine.response.json`: `{ output, usage }` sample
+  - `reinforce.response.json`: `{ output, usage, patch }` sample with minimal ops
+- Behavior:
+  - `/api/models` serves `models.json`
+  - `/api/refine` returns fixture based on `mode`
+  - Latency simulation: 100–300ms
+  - Error simulation: toggleable via `MOCK_ERROR` env for negative tests
 
 ## Error Testing Strategy
 

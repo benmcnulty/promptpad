@@ -150,6 +150,42 @@
           "to": "structured approach:\n\n1. Analyze the problem\n2. Develop solutions"
         }
       ]
+    },
+    {
+      "title": "CRLF and Unicode Handling",
+      "description": "Patch includes CRLF and astral-plane Unicode characters",
+      "data": [
+        {
+          "op": "replace",
+          "from": [0, 12],
+          "to": "Line 1\r\nLine 2 🚀✨ and 𐐷"
+        }
+      ]
+    }
+  ],
+
+  "invalidExamples": [
+    {
+      "title": "Overlapping Ranges (reject)",
+      "description": "Delete overlaps prior replace range",
+      "data": [
+        { "op": "replace", "from": [10, 20], "to": "A" },
+        { "op": "delete", "from": [15, 25] }
+      ]
+    },
+    {
+      "title": "Missing Required Field",
+      "description": "Replace without 'to'",
+      "data": [
+        { "op": "replace", "from": [0, 5] }
+      ]
+    },
+    {
+      "title": "Invalid Operation Type",
+      "description": "Unsupported op value",
+      "data": [
+        { "op": "modify", "from": [0, 1], "to": "x" }
+      ]
     }
   ],
 

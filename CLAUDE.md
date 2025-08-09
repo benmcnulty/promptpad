@@ -14,6 +14,23 @@ Promptpad is a local-first prompt drafting tool built with Next.js + TypeScript.
 - Endpoints: `GET /api/models`, `POST /api/refine` with `mode: refine|reinforce` → `{ output, usage, patch? }`.
 - Patch format: compact text‑range ops used by diff/undo/redo. Do not change without an ADR.
 
+## Contracts (Frozen)
+- Endpoints:
+  - `GET /api/models`
+  - `POST /api/refine` body `{ mode: "refine" | "reinforce", input?, draft?, model, temperature }` → `{ output, usage, patch? }`
+- Canonical response example:
+```
+{
+  "output": "<string>",
+  "usage": { "input_tokens": <number>, "output_tokens": <number> },
+  "patch": [
+    { "op": "replace", "from": [<start>, <end>], "to": "<text>" }
+  ]
+}
+```
+- Schemas: `docs/agents/schemas/api-contract.schema.json`, `docs/agents/schemas/patch.schema.json`
+- Any change requires an ADR before implementation.
+
 ## Coding Rules
 - Keep API handlers thin; move logic into small, pure functions in `lib/`.
 - Favor single‑responsibility diffs; avoid drive‑by refactors.

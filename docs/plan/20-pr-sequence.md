@@ -65,6 +65,8 @@ pnpm dlx markdown-link-check docs/plan/*.md
 - [ ] Focus rings and keyboard navigation
 - [ ] No console errors or warnings
 - [ ] Build succeeds without errors
+- [ ] StatusBar visible with: git short SHA (placeholder OK), default model, Ollama state, temperature
+- [ ] Non-blank dev shell logs basic health (env, port, default model)
 
 ### Verification Commands
 ```bash

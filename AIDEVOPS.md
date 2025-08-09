@@ -15,6 +15,44 @@ Aligned docs: see **AGENTS.md**, **CLAUDE.md**, and **.github/copilot-instructio
 
 ---
 
+## Contracts & Schemas (Frozen)
+- Endpoints:
+  - `GET /api/models`
+  - `POST /api/refine` body `{ mode: "refine" | "reinforce", input?, draft?, model, temperature }` → `{ output, usage, patch? }`
+- Patch: compact text‑range list used for diff/undo/redo.
+- Canonical response example:
+```
+{
+  "output": "<string>",
+  "usage": { "input_tokens": <number>, "output_tokens": <number> },
+  "patch": [
+    { "op": "replace", "from": [<start>, <end>], "to": "<text>" }
+  ]
+}
+```
+- JSON Schemas (source of truth):
+  - `docs/agents/schemas/api-contract.schema.json`
+  - `docs/agents/schemas/patch.schema.json`
+
+Any change requires an ADR before implementation.
+
+---
+
+## Live Dev UX Contract
+- StatusBar (visible from PR #2 onward):
+  - `git` short SHA (placeholder OK)
+  - Default model (`gpt-oss:20b`) and selected model
+  - Ollama state: `connected | offline` (simulated acceptable in scaffold)
+  - Temperature (capped at ≤0.3)
+- Single-screen board stays functional during dev:
+  - Left: input; Right: editable output; live token counts
+  - Non-blank dev shell with basic health logs (env, port, model default)
+- Undo/Redo must persist via `localStorage` once implemented (PRs #6–#7).
+
+Contributors should keep `pnpm dev` running on `localhost:3000` when working on UI/UX.
+
+---
+
 ## 2) Branching Model & Names
 - Default protected branch: **`main`** (always releasable).
 - Short‑lived working branches:
