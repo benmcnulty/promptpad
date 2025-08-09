@@ -63,19 +63,42 @@ export async function POST(req: Request) {
       }
     }
 
-    // Real generation via Ollama
-    if (body.mode === 'refine') {
-      const input = body.input as string
-      const prompt = buildRefinePrompt(input)
-      const { text, usage } = await ollama.generate(model, prompt, { temperature })
-      return NextResponse.json({ output: text, usage })
-    } else {
-      const draft = body.draft as string
-      const prompt = buildReinforcePrompt(draft)
-      const { text, usage } = await ollama.generate(model, prompt, { temperature })
-      // MVP patch: full replacement
-      const patch = [{ op: 'replace', from: [0, draft.length], to: text }]
-      return NextResponse.json({ output: text, usage, patch })
+    // Real generation via Ollama with graceful fallback in development
+    try {
+      if (body.mode === 'refine') {
+        const input = body.input as string
+        const prompt = buildRefinePrompt(input)
+        const { text, usage } = await ollama.generate(model, prompt, { temperature })
+        return NextResponse.json({ output: text, usage })
+      } else {
+        const draft = body.draft as string
+        const prompt = buildReinforcePrompt(draft)
+        const { text, usage } = await ollama.generate(model, prompt, { temperature })
+        const patch = [{ op: 'replace', from: [0, draft.length], to: text }]
+        return NextResponse.json({ output: text, usage, patch })
+      }
+    } catch (err) {
+      // If Ollama is unavailable and we're in development, return deterministic fallback
+      const isDev = process.env.NODE_ENV !== 'production'
+      if (isDev) {
+        if (body.mode === 'refine') {
+          const input = body.input as string
+          const output = `Refined Prompt for: ${input}`
+          return NextResponse.json({
+            output,
+            usage: { input_tokens: input.length, output_tokens: output.length },
+          })
+        } else {
+          const draft = body.draft as string
+          const output = `Reinforced Draft: ${draft}`
+          return NextResponse.json({
+            output,
+            usage: { input_tokens: draft.length, output_tokens: output.length },
+            patch: [{ op: 'replace', from: [0, draft.length], to: output }],
+          })
+        }
+      }
+      throw err
     }
   } catch (error) {
     console.error('Refine endpoint error:', error)
@@ -115,4 +138,3 @@ function buildReinforcePrompt(draft: string): string {
     'OUTPUT: Provide only the improved full prompt, no explanation.',
   ].join('\n')
 }
-

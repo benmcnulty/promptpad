@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface StatusBarProps {
   className?: string
@@ -9,31 +9,69 @@ interface StatusBarProps {
 export default function StatusBar({ className = '' }: StatusBarProps) {
   const [gitSha, setGitSha] = useState<string>('loading...')
   const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'connected' | 'error'>('checking')
+  const inFlight = useRef<AbortController | null>(null)
+  const intervalId = useRef<number | null>(null)
+  const mounted = useRef<boolean>(false)
 
   useEffect(() => {
     // Get git SHA (placeholder for now)
     setGitSha('abc1234')
     
     // Check Ollama connection via API
+    if (mounted.current) return
+    mounted.current = true
+
     const checkOllamaStatus = async () => {
+      if (inFlight.current) {
+        inFlight.current.abort()
+        inFlight.current = null
+      }
       setOllamaStatus('checking')
+      const ctrl = new AbortController()
+      inFlight.current = ctrl
       try {
-        const response = await fetch('/api/models')
-        if (response.ok) {
-          setOllamaStatus('connected')
-        } else {
-          setOllamaStatus('error')
-        }
+        const response = await fetch('/api/models', { signal: ctrl.signal })
+        if (response.ok) setOllamaStatus('connected')
+        else setOllamaStatus('error')
       } catch (error) {
         setOllamaStatus('error')
+      } finally {
+        inFlight.current = null
       }
     }
 
+    // Initial check
     checkOllamaStatus()
-    
-    // Poll every 10 seconds to keep status updated
-    const interval = setInterval(checkOllamaStatus, 10000)
-    return () => clearInterval(interval)
+
+    // Poll every 30 seconds with simple visibility-aware behavior
+    const startPolling = () => {
+      if (intervalId.current !== null) return
+      intervalId.current = window.setInterval(() => {
+        if (document.hidden) return
+        checkOllamaStatus()
+      }, 30000)
+    }
+    const stopPolling = () => {
+      if (intervalId.current !== null) {
+        clearInterval(intervalId.current)
+        intervalId.current = null
+      }
+    }
+
+    const onVisibility = () => {
+      if (document.hidden) stopPolling()
+      else startPolling()
+    }
+
+    document.addEventListener('visibilitychange', onVisibility)
+    startPolling()
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      stopPolling()
+      if (inFlight.current) inFlight.current.abort()
+      mounted.current = false
+    }
   }, [])
 
   return (
