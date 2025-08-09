@@ -1,44 +1,21 @@
 import '@testing-library/jest-dom'
 
-// Mock Web APIs for Node.js test environment
+// Mock fetch for tests that depend on it. Individual tests may override.
 global.fetch = jest.fn()
 
-// Mock Response for Node.js
-global.Response = class Response {
-  constructor(body, init = {}) {
-    this.body = body
-    this.status = init.status || 200
-    this.ok = this.status >= 200 && this.status < 300
-    this.statusText = init.statusText || 'OK'
-    this.headers = new Map(Object.entries(init.headers || {}))
-  }
-  
-  async json() {
-    return typeof this.body === 'string' ? JSON.parse(this.body) : this.body
-  }
-  
-  async text() {
-    return typeof this.body === 'string' ? this.body : JSON.stringify(this.body)
-  }
-}
-
-// Mock Request for Next.js API routes
-global.Request = class Request {
-  constructor(input, init = {}) {
-    this.url = input
-    this.method = init.method || 'GET'
-    this.headers = new Map(Object.entries(init.headers || {}))
-    this.body = init.body || null
-  }
-  
-  async json() {
-    return typeof this.body === 'string' ? JSON.parse(this.body) : this.body
-  }
-}
-
-// Mock AbortSignal for fetch timeout
+// Mock AbortSignal for fetch timeout used in Ollama client
 global.AbortSignal = {
-  timeout: jest.fn(() => ({ aborted: false }))
+  timeout: jest.fn(() => ({ aborted: false })),
+}
+
+// Ensure Web Fetch API classes exist in test env (Node 20 provides these)
+// Use native implementations if available; do not stub.
+const g = globalThis
+if (typeof Request !== 'undefined' && !g.Request) {
+  g.Request = Request
+}
+if (typeof Response !== 'undefined' && !g.Response) {
+  g.Response = Response
 }
 
 // Suppress React act() warnings in tests - we'll handle async state updates

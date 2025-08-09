@@ -8,6 +8,9 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 ### Added
 - Ollama API adapter with health checks, model listing, and text generation
 - GET /api/models endpoint with graceful degradation and mock mode support
+- POST /api/refine endpoint supporting refine/reinforce per frozen contract
+  - Refine: expands terse input into a structured prompt
+  - Reinforce: tightens a draft and returns minimal patch list
 - Real-time Ollama connection status in StatusBar with 10-second polling
 - Temperature constraint enforcement (≤0.3) in Ollama client
 - Comprehensive error handling with structured OllamaError class
@@ -40,3 +43,4 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 ### Changed
 - Align agent guidance with AIDEVOPS: updated `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`; added devlog scaffold.
 - Harmonized core library coverage targets to ≥80% across Test Strategy to match invariants
+- Align GET /api/models response to array shape per `api-contract.schema.json`

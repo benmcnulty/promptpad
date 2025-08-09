@@ -5,77 +5,64 @@ export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/models
- * Returns list of available Ollama models
- * Contract: { models: Array<{ name: string, size?: number }> }
+ * Returns an array of available models per frozen contract.
+ * Shape: Array<{ name: string, family: string, parameters: string, default?: boolean }>
  */
 export async function GET() {
   try {
-    // Check if we're in mock mode for CI
+    // Mock mode for CI and local development without Ollama
     if (process.env.OLLAMA_MOCK === '1') {
-      return NextResponse.json({
-        models: [
-          {
-            name: 'gpt-oss:20b',
-            size: 21474836480, // ~20GB
-            digest: 'mock-digest',
-            modified_at: new Date().toISOString(),
-          },
-        ],
-      })
+      return NextResponse.json([
+        { name: 'gpt-oss:20b', family: 'gpt-oss', parameters: '20b', default: true },
+        { name: 'llama3.2:8b', family: 'llama', parameters: '8b' },
+      ])
     }
 
     const models = await ollama.listModels()
-    
-    // Ensure gpt-oss:20b is in the list (even if not actually available)
-    // This maintains the contract that the default model is always available
-    const hasDefaultModel = models.some(model => model.name === 'gpt-oss:20b')
-    if (!hasDefaultModel) {
-      models.unshift({
-        name: 'gpt-oss:20b',
-        size: 0,
-        digest: 'placeholder',
-        modified_at: new Date().toISOString(),
+
+    // Ensure gpt-oss:20b appears and is marked default
+    const normalized = normalizeModels(models)
+    const hasDefault = normalized.some(m => m.name === 'gpt-oss:20b')
+    if (!hasDefault) {
+      normalized.unshift({ name: 'gpt-oss:20b', family: 'gpt-oss', parameters: '20b', default: true })
+    } else {
+      // Mark default flag on the canonical default
+      normalized.forEach(m => {
+        if (m.name === 'gpt-oss:20b') m.default = true
       })
     }
 
-    return NextResponse.json({
-      models: models.map(model => ({
-        name: model.name,
-        size: model.size,
-        digest: model.digest,
-        modified_at: model.modified_at,
-      })),
-    })
+    return NextResponse.json(normalized)
   } catch (error) {
     console.error('Failed to list models:', error)
-    
-    if (error instanceof OllamaError) {
-      // Return service unavailable with default model for graceful degradation
-      return NextResponse.json(
-        {
-          models: [
-            {
-              name: 'gpt-oss:20b',
-              size: 0,
-              digest: 'unavailable',
-              modified_at: new Date().toISOString(),
-            },
-          ],
-          error: 'Ollama service unavailable',
-          message: error.message,
-        },
-        { status: 503 }
-      )
+
+    // On failure, still return a valid array with default entry, set status for consumers
+    const status = error instanceof OllamaError ? 503 : 500
+    return NextResponse.json([
+      { name: 'gpt-oss:20b', family: 'gpt-oss', parameters: '20b', default: true },
+    ], { status })
+  }
+}
+
+function normalizeModels(models: { name: string }[]): Array<{ name: string; family: string; parameters: string; default?: boolean }> {
+  return models.map(({ name }) => {
+    // Heuristic parsing of family and parameters
+    // Examples: "gpt-oss:20b" → family=gpt-oss, parameters=20b
+    //           "llama3.2:8b" → family=llama, parameters=8b
+    //           "qwen2.5"     → family=qwen, parameters=unknown
+    let family = 'unknown'
+    let parameters = 'unknown'
+
+    const colonMatch = name.match(/^([^:]+):([0-9]+[a-zA-Z]+)$/)
+    if (colonMatch) {
+      family = colonMatch[1].replace(/\d+.*$/, '') || colonMatch[1]
+      parameters = colonMatch[2]
+    } else {
+      const paramMatch = name.match(/(\d+)[bBkKmMgG]?/)
+      if (paramMatch) parameters = `${paramMatch[1]}b`
+      family = name.split(/[:\-]/)[0].replace(/\d+.*$/, '') || name
     }
 
-    // Unexpected error
-    return NextResponse.json(
-      {
-        models: [],
-        error: 'Internal server error',
-        message: 'Failed to retrieve models',
-      },
-      { status: 500 }
-    )
-  }
+    return { name, family, parameters }
+  })
 }
