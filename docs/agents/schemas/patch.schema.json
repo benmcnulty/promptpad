@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Promptpad Patch Operations Schema",
+  "description": "JSON Schema for compact text-range patch operations used by diff/undo/redo system",
+  
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/PatchOperation"
+  },
+  "description": "Array of patch operations to transform text",
+
+  "definitions": {
+    "PatchOperation": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": ["replace", "insert", "delete"],
+          "description": "Type of operation to perform"
+        },
+        "from": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[start, end] character positions for replace/delete operations"
+        },
+        "at": {
+          "type": "integer", 
+          "minimum": 0,
+          "description": "Character position for insert operations"
+        },
+        "to": {
+          "type": "string",
+          "description": "Replacement text for replace operations, or insertion text for insert operations"
+        }
+      },
+      "required": ["op"],
+      "oneOf": [
+        {
+          "title": "Replace Operation",
+          "description": "Replace text in range [from[0], from[1]) with 'to' text",
+          "properties": {
+            "op": { "const": "replace" },
+            "from": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "to": { "type": "string" }
+          },
+          "required": ["op", "from", "to"],
+          "not": { "required": ["at"] }
+        },
+        {
+          "title": "Insert Operation", 
+          "description": "Insert 'to' text at position 'at'",
+          "properties": {
+            "op": { "const": "insert" },
+            "at": { "type": "integer", "minimum": 0 },
+            "to": { "type": "string" }
+          },
+          "required": ["op", "at", "to"],
+          "not": { "required": ["from"] }
+        },
+        {
+          "title": "Delete Operation",
+          "description": "Delete text in range [from[0], from[1])",
+          "properties": {
+            "op": { "const": "delete" },
+            "from": {
+              "type": "array", 
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": ["op", "from"],
+          "not": { "required": ["at", "to"] }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+
+  "examples": [
+    {
+      "title": "Single Replace Operation",
+      "description": "Replace 'good' with 'excellent' at positions 20-24",
+      "data": [
+        {
+          "op": "replace",
+          "from": [20, 24],
+          "to": "excellent"
+        }
+      ]
+    },
+    {
+      "title": "Multiple Operations",
+      "description": "Complex patch with replace, insert, and delete",
+      "data": [
+        {
+          "op": "replace",
+          "from": [0, 5], 
+          "to": "Create"
+        },
+        {
+          "op": "insert",
+          "at": 25,
+          "to": " comprehensive"
+        },
+        {
+          "op": "delete",
+          "from": [45, 60]
+        }
+      ]
+    },
+    {
+      "title": "Insert at Beginning",
+      "description": "Add prefix to text",
+      "data": [
+        {
+          "op": "insert",
+          "at": 0,
+          "to": "IMPORTANT: "
+        }
+      ]
+    },
+    {
+      "title": "Delete Range",
+      "description": "Remove redundant text",
+      "data": [
+        {
+          "op": "delete",
+          "from": [100, 150]
+        }
+      ]
+    },
+    {
+      "title": "Multi-line Text Operations",
+      "description": "Operations spanning multiple lines",
+      "data": [
+        {
+          "op": "replace",
+          "from": [200, 220],
+          "to": "structured approach:\n\n1. Analyze the problem\n2. Develop solutions"
+        }
+      ]
+    }
+  ],
+
+  "patternProperties": {
+    ".*": {
+      "not": {}
+    }
+  },
+
+  "additionalProperties": false
+}
