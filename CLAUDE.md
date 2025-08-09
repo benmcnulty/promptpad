@@ -1,71 +1,42 @@
-# CLAUDE.md
+# Claude Code Execution Manual
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This manual tells Claude Code exactly how to work here. Model defaults or context windows are irrelevant to process; follow the gates in AIDEVOPS.md.
 
-## Project Overview
+## Invariants & Boundaries
+- Local‑first via Ollama; default `gpt-oss:20b`; temperature ~0.2 (≤0.3 unless justified).
+- Only two operations: Refine and Reinforce. Keep endpoints stable.
+- Endpoints: `GET /api/models`, `POST /api/refine` with `mode: refine|reinforce` → `{ output, usage, patch? }`.
+- Patch format: compact text‑range ops used by diff/undo/redo. Do not change without an ADR.
 
-Promptpad is a minimal drafting board for prompts that expands rough instructions into clear, copy-ready prompts. It's a Next.js application that uses Ollama for local inference, optimized for the `gpt-oss:20b` model.
+## Coding Rules
+- Keep API handlers thin; move logic into small, pure functions in `lib/`.
+- Favor single‑responsibility diffs; avoid drive‑by refactors.
+- Add/maintain tests before changing `lib/diff.ts`, `lib/history.ts`, or `lib/tokens/*`.
+- Provide CLI‑style commands in PRs for verification (typecheck, lint, build, test).
 
-**Core workflow:**
-1. User types short instruction → Refine expands it into structured prompt
-2. User edits the output freely → Reinforce sends edited draft back for tightening
-3. Results shown as diffs that can be applied/undone
+## Test Scaffold (add or update first)
+- `lib/diff.ts`: patch generation and application round‑trips; edge cases (CRLF, unicode, empty ranges).
+- `lib/history.ts`: push/undo/redo, snapshot persistence, hydration from `localStorage`.
+- `lib/tokens/*`: counting is stable for common inputs; performance won’t block UI.
+- API: `/api/refine` returns `{ output, usage, patch? }` respecting `mode`; validates `model` via `/api/models`.
 
-## Development Commands
+Suggested commands (paste outputs in PR):
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm build`
+- `pnpm test -- --coverage`
 
-```bash
-# Install dependencies
-pnpm install
+## Two‑Pass Workflow & Prompts
+- Refine: expand terse `input` into a clear, copy‑ready prompt. Prompt: “Expand the input into a structured prompt; keep temp ≤0.3; return `{ output, usage }`.”
+- Reinforce: tighten the edited `draft` (goals, constraints, tone, variables). Prompt: “Return full `output` plus minimal `patch` list for diff/undo.”
 
-# Run development server
-pnpm dev          # http://localhost:3000
+## Process & Merge Queue
+- Use Conventional Commits; focused branches `feat/|fix/|docs/|chore/|refactor/|spike/` with optional `@claude`.
+- Append a devlog file `docs/devlog/PR-<number>.md` with commands and outputs.
+- If invariants or API would change, open an ADR and link it; do not merge without acceptance.
+- Mark PR `queue:ready` only when typecheck, lint, build, tests are green and checklist is complete.
 
-# Build for production
-pnpm build
-
-# Start production build
-pnpm start
-
-# Ensure default model is available
-ollama pull gpt-oss:20b
-```
-
-## Architecture & Code Organization
-
-**Directory structure:**
-- `app/` - Next.js App Router pages and API routes
-  - `page.tsx` - Main drafting board UI (input ↔ output)
-  - `api/models/route.ts` - GET endpoint to list local Ollama models
-  - `api/refine/route.ts` - POST endpoint for refine/reinforce operations
-- `lib/` - Core utilities
-  - `ollama.ts` - Ollama adapter for listing models and generating text
-  - `tokens/` - Pluggable token counting system (defaults to tiktoken approximation)
-  - `history.ts` - Undo/redo stack with localStorage persistence
-  - `diff.ts` - Text diff/patch helpers for reinforcement diffs
-
-**Key patterns:**
-- Two-pass system: "Refine" (expand) then "Reinforce" (diff-based tighten)
-- All mutations (user edits + LLM diffs) push to undo/redo history stack
-- Local-first: uses Ollama, localStorage persistence, no cloud by default
-- Default model: `gpt-oss:20b` with temperature ≈ 0.2 for deterministic refinement
-
-## API Design
-
-**POST /api/refine** handles both modes:
-- `mode: "refine"` - expand initial instruction into full prompt
-- `mode: "reinforce"` - tighten coordination in edited draft, returns diff patches
-
-**GET /api/models** - lists available Ollama models with `gpt-oss:20b` highlighted as default
-
-## Code Style & Conventions
-
-- TypeScript strict mode, React function components
-- 2-space indentation, kebab-case for modules, PascalCase for components
-- Tailwind-first styling
-- Next.js App Router conventions (lowercase route segments)
-
-## Prerequisites
-
-- Node.js ≥ 20
-- Ollama installed and running locally
-- Primary model: `gpt-oss:20b` (pull with `ollama pull gpt-oss:20b`)
+## Examples
+- Commit: `feat(refine): show token counts beside editors`
+- Commit: `fix(reinforce): correct patch ranges on CRLF files`
+- PR includes: checklist, devlog link, screenshots (if UI), and confirmation of no API/patch drift.

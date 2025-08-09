@@ -1,44 +1,37 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- app/: Next.js App Router pages and API routes (e.g., app/page.tsx, app/api/refine/route.ts).
-- lib/: client/server utilities (ollama adapter, tokens, diff, history).
-- styles/: Tailwind CSS setup and project styles.
-- Public assets live in public/; colocate feature files near usage.
+This is the umbrella guide for all agents (Codex, Claude Code, Copilot). Follow AIDEVOPS.md for process and gates.
 
-## Build, Test, and Development Commands
-- pnpm install: install dependencies.
-- pnpm dev: run the app locally at http://localhost:3000.
-- pnpm build: create a production build.
-- pnpm start: run the built app.
-- ollama pull gpt-oss:20b: ensure the default local model is available.
+## Project Invariants (non‑negotiable)
+- Local‑first via Ollama; default model `gpt-oss:20b`; temperature ~0.2 (≤0.3 unless justified).
+- Exactly two operations: Refine (expand) and Reinforce (tighten over edited draft).
+- Endpoints: `GET /api/models`, `POST /api/refine` with `mode: refine|reinforce` → `{ output, usage, patch? }`.
+- `patch`: compact text‑range list for diff/undo/redo.
+- Single‑screen board; live token counts; output editable; Undo/Redo persisted in `localStorage`.
+- Event‑driven merge via merge queue when gates pass; label `queue:ready`.
 
-## Coding Style & Naming Conventions
-- Language: TypeScript (strict), React function components, Next.js App Router.
-- Indentation: 2 spaces; keep lines focused and readable.
-- Files: kebab-case for modules; Next routes use lowercase segment names (e.g., app/api/models/route.ts).
-- Components: PascalCase; functions/variables: camelCase; constants: UPPER_SNAKE_CASE when global.
-- Styling: Tailwind-first; extract small utilities when classes get long.
+## Branching & Naming
+- Branches: `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `spike/` (+ optional `@codex|@claude|@copilot`).
+- Use Conventional Commits; squash‑merge to `main`.
 
-## Testing Guidelines
-- Framework: add Vitest or Jest for unit tests; React Testing Library for components.
-- Location: colocate tests next to sources or in __tests__/.
-- Names: *.test.ts(x) and *.spec.ts(x).
-- Coverage: prioritize lib/ (tokens, diff, history) and API route handlers.
-- Run: pnpm test (add script when tests are introduced).
+## Two‑Pass Workflow & API Contract
+- Refine: expand terse instruction into a copy‑ready draft.
+- Reinforce: take the current edited draft, return refined `output` + minimal `patch`.
+- Do not change routes, payloads, or patch schema without an ADR.
+- Agent prompts when touching `/api/refine`:
+  - Refine: “Generate a structured prompt from `input`. Keep temp ≤0.3. Return `{ output, usage }`.”
+  - Reinforce: “Tighten coordination of `draft` (goals, constraints, tone, variables). Return full `output` and minimal `patch` list.”
 
-## Commit & Pull Request Guidelines
-- Commits: concise, imperative subject; include scope when helpful (e.g., refine: handle reinforce diffs).
-- Reference issues with #id; separate refactors from features.
-- PRs: clear description, rationale, before/after notes; include UI screenshots or API examples.
-- Keep PRs small and focused; link related README sections.
+## PR Checklist (paste into description)
+- [ ] Scope focused; branch rebased on `main`
+- [ ] Devlog added: `docs/devlog/PR-<number>.md`
+- [ ] `pnpm typecheck | lint | build | test` green (≥80% for `lib/diff.ts`, `lib/history.ts`, `lib/tokens/*`)
+- [ ] No API/patch drift (`/api/models`, `/api/refine`)
+- [ ] Default `gpt-oss:20b`, temp ≤0.3
+- [ ] Labeled `queue:ready`
 
-## Agent-Specific Instructions
-- Default model: gpt-oss:20b via Ollama; prefer temperature ≈ 0.2 for deterministic refinement.
-- Two passes: Refine (expand instruction) → Reinforce (diff-based tighten pass on edited draft).
-- Prompts: be explicit about goals, constraints, tone, and variables; return minimal diffs for Reinforce.
+## Handoff Protocol
+- In PR description: summary, changed sections, how to verify (commands), screenshots (if UI), risks, ADR links (if invariants touched).
 
-## Security & Configuration
-- Local-first: do not ship data to cloud services by default.
-- Do not commit secrets; use env vars for local overrides.
-- Validate model availability via GET /api/models before calling /api/refine.
+## Definition of Done
+- Code/docs/tests updated; devlog appended; CI/local gates green; squash‑merged via queue; `CHANGELOG.md` updated and release tagged.
