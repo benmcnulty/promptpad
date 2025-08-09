@@ -1,6 +1,12 @@
-# Claude Code Execution Manual
+# CLAUDE.md
 
-This manual tells Claude Code exactly how to work here. Model defaults or context windows are irrelevant to process; follow the gates in AIDEVOPS.md.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Promptpad is a local-first prompt drafting tool built with Next.js + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The app implements a two-pass workflow: Refine (expand) and Reinforce (tighten edited drafts) with diff/undo/redo capabilities.
+
+**Status**: Currently in planning phase - source code implementation has not yet begun.
 
 ## Invariants & Boundaries
 - Local‑first via Ollama; default `gpt-oss:20b`; temperature ~0.2 (≤0.3 unless justified).
@@ -26,9 +32,37 @@ Suggested commands (paste outputs in PR):
 - `pnpm build`
 - `pnpm test -- --coverage`
 
+## Development Commands
+
+When source code is implemented, use these commands:
+- `pnpm install` - Install dependencies  
+- `pnpm dev` - Start development server (http://localhost:3000)
+- `pnpm typecheck` - Run TypeScript checks
+- `pnpm lint` - Run ESLint + Prettier
+- `pnpm build` - Build for production
+- `pnpm test -- --coverage` - Run tests with coverage
+
 ## Two‑Pass Workflow & Prompts
-- Refine: expand terse `input` into a clear, copy‑ready prompt. Prompt: “Expand the input into a structured prompt; keep temp ≤0.3; return `{ output, usage }`.”
-- Reinforce: tighten the edited `draft` (goals, constraints, tone, variables). Prompt: “Return full `output` plus minimal `patch` list for diff/undo.”
+- Refine: expand terse `input` into a clear, copy‑ready prompt. Prompt: "Expand the input into a structured prompt; keep temp ≤0.3; return `{ output, usage }`."
+- Reinforce: tighten the edited `draft` (goals, constraints, tone, variables). Prompt: "Return full `output` plus minimal `patch` list for diff/undo."
+
+## Architecture & File Structure
+
+Expected structure (not yet implemented):
+```
+app/
+  page.tsx                # Main drafting board UI
+  api/
+    models/route.ts       # GET → list Ollama models  
+    refine/route.ts       # POST → refine/reinforce operations
+lib/
+  ollama.ts              # Ollama API adapter
+  tokens/
+    index.ts             # Token counting interface
+    tiktoken.ts          # tiktoken implementation
+  history.ts             # Undo/redo + localStorage
+  diff.ts                # Text diff/patch utilities
+```
 
 ## Process & Merge Queue
 - Use Conventional Commits; focused branches `feat/|fix/|docs/|chore/|refactor/|spike/` with optional `@claude`.
