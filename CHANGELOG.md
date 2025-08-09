@@ -6,6 +6,13 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Added
+- Ollama API adapter with health checks, model listing, and text generation
+- GET /api/models endpoint with graceful degradation and mock mode support
+- Real-time Ollama connection status in StatusBar with 10-second polling
+- Temperature constraint enforcement (≤0.3) in Ollama client
+- Comprehensive error handling with structured OllamaError class
+- OLLAMA_MOCK=1 environment flag for CI/testing without local Ollama
+- Devlog entry for Ollama adapter PR: `docs/devlog/PR-0005.md`
 - Next.js app scaffold with live development shell and split-pane layout
 - StatusBar component with git SHA, model name, and Ollama connection status
 - Comprehensive test suite with React Testing Library and accessibility testing

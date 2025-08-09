@@ -14,8 +14,26 @@ export default function StatusBar({ className = '' }: StatusBarProps) {
     // Get git SHA (placeholder for now)
     setGitSha('abc1234')
     
-    // Check Ollama connection (placeholder for now)
-    setOllamaStatus('checking')
+    // Check Ollama connection via API
+    const checkOllamaStatus = async () => {
+      setOllamaStatus('checking')
+      try {
+        const response = await fetch('/api/models')
+        if (response.ok) {
+          setOllamaStatus('connected')
+        } else {
+          setOllamaStatus('error')
+        }
+      } catch (error) {
+        setOllamaStatus('error')
+      }
+    }
+
+    checkOllamaStatus()
+    
+    // Poll every 10 seconds to keep status updated
+    const interval = setInterval(checkOllamaStatus, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
