@@ -6,6 +6,13 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Added
+- Next.js app scaffold with live development shell and split-pane layout
+- StatusBar component with git SHA, model name, and Ollama connection status
+- Comprehensive test suite with React Testing Library and accessibility testing
+- Complete development toolchain: TypeScript, ESLint, Tailwind CSS, Jest
+- Empty state guidance for Ollama model setup
+- Hot module replacement for live development at http://localhost:3000
+- Devlog entry for app scaffold PR: `docs/devlog/PR-0004.md`
 - Pre-flight review docs: `docs/review/gap_analysis.md`, `docs/review/optimizations.md`
 - Contracts sections in `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` with canonical example
 - AIDEVOPS: new sections for Contracts & Schemas and Live Dev UX Contract (StatusBar + dev shell expectations)
