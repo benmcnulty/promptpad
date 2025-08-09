@@ -13,6 +13,9 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
   - Reinforce: tightens a draft and returns minimal patch list
 - Real-time Ollama connection status in StatusBar with 10-second polling
 - Temperature constraint enforcement (≤0.3) in Ollama client
+- Live token counting via TokenCounter with pluggable TokenCountingService
+  - Default counter uses server-side tiktoken; client uses fast heuristic fallback
+  - React hook `useTokenCount` with debounce and cache
 - Comprehensive error handling with structured OllamaError class
 - OLLAMA_MOCK=1 environment flag for CI/testing without local Ollama
 - Devlog entry for Ollama adapter PR: `docs/devlog/PR-0005.md`
@@ -44,3 +47,4 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 - Align agent guidance with AIDEVOPS: updated `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`; added devlog scaffold.
 - Harmonized core library coverage targets to ≥80% across Test Strategy to match invariants
 - Align GET /api/models response to array shape per `api-contract.schema.json`
+- Next.js config updated to support WebAssembly experiments for tokenizer compatibility

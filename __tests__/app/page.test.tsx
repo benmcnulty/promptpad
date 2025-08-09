@@ -17,12 +17,14 @@ describe('Home Page', () => {
     expect(screen.getByLabelText('Prompt output area')).toBeInTheDocument()
   })
 
-  it('displays disabled controls in initial state', () => {
+  it('displays interactive text areas and disabled action buttons', () => {
     render(<Home />)
     
-    // All interactive elements should be disabled initially
-    expect(screen.getByLabelText('Prompt input area')).toBeDisabled()
-    expect(screen.getByLabelText('Prompt output area')).toBeDisabled()
+    // Text areas should now be enabled for token counting demo
+    expect(screen.getByLabelText('Prompt input area')).toBeEnabled()
+    expect(screen.getByLabelText('Prompt output area')).toBeEnabled()
+    
+    // Action buttons should still be disabled until functionality is implemented
     expect(screen.getByLabelText('Refine prompt')).toBeDisabled()
     expect(screen.getByLabelText('Undo last change')).toBeDisabled()
     expect(screen.getByLabelText('Reinforce edited prompt')).toBeDisabled()

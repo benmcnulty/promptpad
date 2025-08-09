@@ -1,8 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import StatusBar from '@/components/StatusBar'
+import TokenCounter from '@/components/TokenCounter'
 
 export default function Home() {
+  const [inputText, setInputText] = useState('')
+  const [outputText, setOutputText] = useState('')
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -27,18 +31,17 @@ export default function Home() {
           
           <div className="flex-1 p-4">
             <textarea
-              className="w-full h-full resize-none border-2 border-gray-300 rounded-lg p-4 form-control focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-full resize-none border-2 border-gray-300 rounded-lg p-4 form-control focus-visible"
               placeholder="Enter your prompt ideas here..."
-              disabled
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
               aria-label="Prompt input area"
             />
           </div>
 
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-gray-500">
-                Tokens: <span className="font-mono">0</span>
-              </span>
+              <TokenCounter text={inputText} />
               <button 
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled
@@ -63,18 +66,17 @@ export default function Home() {
           
           <div className="flex-1 p-4">
             <textarea
-              className="w-full h-full resize-none border-2 border-gray-300 rounded-lg p-4 form-control focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-full resize-none border-2 border-gray-300 rounded-lg p-4 form-control focus-visible"
               placeholder="Refined prompt will appear here..."
-              disabled
+              value={outputText}
+              onChange={(e) => setOutputText(e.target.value)}
               aria-label="Prompt output area"
             />
           </div>
 
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-gray-500">
-                Tokens: <span className="font-mono">0</span>
-              </span>
+              <TokenCounter text={outputText} />
               <div className="flex space-x-2">
                 <button 
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
