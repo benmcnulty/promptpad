@@ -36,7 +36,7 @@ describe('StatusBar', () => {
     
     // Wait for API call to complete
     await waitFor(() => {
-      expect(screen.getByText('connected...')).toBeInTheDocument()
+      expect(screen.getByText('Connected')).toBeInTheDocument()
     })
   })
 
@@ -52,13 +52,13 @@ describe('StatusBar', () => {
     render(<StatusBar />)
     
     // Should show checking status initially
-    expect(screen.getByText('checking...')).toBeInTheDocument()
+    expect(screen.getByText('Checking...')).toBeInTheDocument()
     const checkingIndicator = screen.getByLabelText('Ollama status: checking')
-    expect(checkingIndicator).toHaveClass('bg-yellow-500', 'animate-pulse')
+    expect(checkingIndicator).toHaveClass('bg-amber-500', 'animate-pulse')
 
     // Wait for status to update
     await waitFor(() => {
-      expect(screen.getByText('connected...')).toBeInTheDocument()
+      expect(screen.getByText('Connected')).toBeInTheDocument()
     })
   })
 
@@ -68,7 +68,7 @@ describe('StatusBar', () => {
     render(<StatusBar />)
 
     await waitFor(() => {
-      expect(screen.getByText('error...')).toBeInTheDocument()
+      expect(screen.getByText('Error')).toBeInTheDocument()
       const errorIndicator = screen.getByLabelText('Ollama status: error')
       expect(errorIndicator).toHaveClass('bg-red-500')
     })
@@ -83,7 +83,7 @@ describe('StatusBar', () => {
     render(<StatusBar />)
 
     await waitFor(() => {
-      expect(screen.getByText('error...')).toBeInTheDocument()
+      expect(screen.getByText('Error')).toBeInTheDocument()
     })
   })
 

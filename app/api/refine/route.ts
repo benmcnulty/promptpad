@@ -68,33 +68,50 @@ export async function POST(req: Request) {
       if (body.mode === 'refine') {
         const input = body.input as string
         const prompt = buildRefinePrompt(input)
+        console.log(`🔄 Refine API: Sending prompt to Ollama (${model})`)
+        console.log(`📝 System prompt:`, prompt)
         const { text, usage } = await ollama.generate(model, prompt, { temperature })
-        return NextResponse.json({ output: text, usage })
+        console.log(`✅ Refine API: Got response from Ollama (${text.length} chars)`)
+        console.log(`📊 Usage:`, usage)
+        return NextResponse.json({ output: text, usage, systemPrompt: prompt })
       } else {
         const draft = body.draft as string
         const prompt = buildReinforcePrompt(draft)
+        console.log(`🔄 Reinforce API: Sending prompt to Ollama (${model})`)
+        console.log(`📝 System prompt:`, prompt)
         const { text, usage } = await ollama.generate(model, prompt, { temperature })
+        console.log(`✅ Reinforce API: Got response from Ollama (${text.length} chars)`)
         const patch = [{ op: 'replace', from: [0, draft.length], to: text }]
-        return NextResponse.json({ output: text, usage, patch })
+        return NextResponse.json({ output: text, usage, patch, systemPrompt: prompt })
       }
     } catch (err) {
+      console.error(`💥 Ollama generation failed:`, err)
       // If Ollama is unavailable and we're in development, return deterministic fallback
       const isDev = process.env.NODE_ENV !== 'production'
       if (isDev) {
+        console.log(`⚠️ Using development fallback (Ollama unavailable)`)
         if (body.mode === 'refine') {
           const input = body.input as string
-          const output = `Refined Prompt for: ${input}`
+          const prompt = buildRefinePrompt(input)
+          const output = `[DEV FALLBACK] Here's your refined prompt for "${input}":\n\n# Creative Story Prompt\n\nWrite an engaging short story about a cat named Pupper. The story should:\n\n- Be 500-800 words in length\n- Include character development showing Pupper's unique personality\n- Feature an interesting conflict or adventure\n- Have a satisfying resolution\n- Use vivid descriptions to bring scenes to life\n- Appeal to readers who enjoy heartwarming pet stories\n\nConsider including elements like Pupper's daily routine, interactions with humans or other animals, and what makes this cat special or memorable.`
+          
           return NextResponse.json({
             output,
             usage: { input_tokens: input.length, output_tokens: output.length },
+            systemPrompt: prompt,
+            fallbackUsed: true
           })
         } else {
           const draft = body.draft as string
-          const output = `Reinforced Draft: ${draft}`
+          const prompt = buildReinforcePrompt(draft)
+          const output = `[DEV FALLBACK] Here's your reinforced prompt:\n\n# Enhanced Creative Story Prompt\n\nWrite a compelling short story about a cat named Pupper with the following specifications:\n\n## Core Requirements\n- Length: 500-800 words\n- Genre: Heartwarming pet fiction\n- Protagonist: Pupper (cat with distinct personality)\n\n## Story Elements\n- **Character Arc**: Show Pupper's growth or reveal hidden traits\n- **Conflict**: Include meaningful challenge or adventure\n- **Resolution**: Satisfying conclusion that ties to the character development\n- **Setting**: Vivid descriptions of environments\n\n## Writing Style\n- Use sensory details to immerse readers\n- Balance dialogue and narrative\n- Target audience: General readers who enjoy uplifting animal stories\n\n## Optional Elements\n- Daily routine that reveals character\n- Relationships with humans/other pets\n- Unique quirks that make Pupper memorable`
+          
           return NextResponse.json({
             output,
             usage: { input_tokens: draft.length, output_tokens: output.length },
             patch: [{ op: 'replace', from: [0, draft.length], to: output }],
+            systemPrompt: prompt,
+            fallbackUsed: true
           })
         }
       }

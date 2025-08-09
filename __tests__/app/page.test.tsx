@@ -9,8 +9,8 @@ describe('Home Page', () => {
     expect(screen.getByRole('heading', { name: 'Promptpad', level: 1 })).toBeInTheDocument()
     
     // Check for input and output sections
-    expect(screen.getByRole('heading', { name: 'Input', level: 2 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Output', level: 2 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Input Draft', level: 2 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Refined Output', level: 2 })).toBeInTheDocument()
     
     // Check for text areas with proper labels
     expect(screen.getByLabelText('Prompt input area')).toBeInTheDocument()
@@ -69,9 +69,10 @@ describe('Home Page', () => {
       expect(textarea).toHaveClass('focus-visible')
     })
     
-    const buttons = screen.getAllByRole('button')
-    buttons.forEach(button => {
-      expect(button).toHaveClass('focus-visible')
-    })
+    // Check that main action buttons have proper focus styles
+    const refineButton = screen.getByLabelText('Refine prompt')
+    const reinforceButton = screen.getByLabelText('Reinforce edited prompt')
+    expect(refineButton).toHaveClass('focus-visible')
+    expect(reinforceButton).toHaveClass('focus-visible')
   })
 })

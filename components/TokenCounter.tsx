@@ -30,10 +30,13 @@ export default function TokenCounter({
   if (error) {
     return (
       <span 
-        className={`text-sm text-red-500 ${className}`}
+        className={`flex items-center bg-red-50/90 backdrop-blur-sm text-red-700 px-3 py-2 rounded-lg text-sm font-medium border border-red-200/60 shadow-soft ${className}`}
         title={`Token counting error: ${error}`}
         aria-label={`${label}: Error`}
       >
+        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.19-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+        </svg>
         {label}: Error
       </span>
     )
@@ -41,15 +44,17 @@ export default function TokenCounter({
 
   return (
     <span 
-      className={`text-sm text-gray-500 ${className}`}
+      className={`flex items-center bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium border border-white/50 shadow-soft hover:bg-white/80 transition-colors duration-200 ${className}`}
       aria-label={`${label}: ${count}`}
     >
-      {label}: {' '}
-      <span className="font-mono">
+      <span className="text-slate-600 font-medium">{label}:</span>
+      <span className="font-mono ml-3 text-base">
         {showLoader && isLoading ? (
-          <span className="opacity-50">...</span>
+          <span className="animate-pulse text-slate-500 font-medium">⋯</span>
         ) : (
-          count.toLocaleString()
+          <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent font-bold">
+            {count.toLocaleString()}
+          </span>
         )}
       </span>
     </span>
@@ -68,7 +73,7 @@ export function CompactTokenCounter({
   if (error) {
     return (
       <span 
-        className={`font-mono text-xs text-red-500 ${className}`}
+        className={`font-mono text-xs text-red-600 bg-red-50 px-1.5 py-0.5 rounded border ${className}`}
         title="Token counting error"
         aria-label="Token count error"
       >
@@ -79,10 +84,10 @@ export function CompactTokenCounter({
 
   return (
     <span 
-      className={`font-mono text-xs ${className}`}
+      className={`font-mono text-xs bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent font-semibold ${className}`}
       aria-label={`${count} tokens`}
     >
-      {isLoading ? '...' : count.toLocaleString()}
+      {isLoading ? '⋯' : count.toLocaleString()}
     </span>
   )
 }

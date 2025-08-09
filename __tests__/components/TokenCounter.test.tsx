@@ -53,7 +53,7 @@ describe('TokenCounter', () => {
     render(<TokenCounter text="test" showLoader={true} />)
     
     expect(screen.getByText('Tokens:')).toBeInTheDocument()
-    expect(screen.getByText('...')).toBeInTheDocument()
+    expect(screen.getByText('⋯')).toBeInTheDocument()
   })
 
   it('hides loader when showLoader is false', async () => {
@@ -66,7 +66,7 @@ describe('TokenCounter', () => {
     render(<TokenCounter text="test" showLoader={false} />)
     
     expect(screen.getByText('5')).toBeInTheDocument()
-    expect(screen.queryByText('...')).not.toBeInTheDocument()
+    expect(screen.queryByText('⋯')).not.toBeInTheDocument()
   })
 
   it('displays error state', async () => {
@@ -150,7 +150,7 @@ describe('CompactTokenCounter', () => {
 
     render(<CompactTokenCounter text="test" />)
     
-    expect(screen.getByText('...')).toBeInTheDocument()
+    expect(screen.getByText('⋯')).toBeInTheDocument()
   })
 
   it('shows error in compact form', async () => {
