@@ -1,12 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import StatusBar from '@/components/StatusBar'
 import TokenCounter from '@/components/TokenCounter'
+import ProgressTracker from '@/components/ProgressTracker'
+import { useRefine } from '@/hooks/useRefine'
 
 export default function Home() {
   const [inputText, setInputText] = useState('')
   const [outputText, setOutputText] = useState('')
+  const { state, statusSummary, run, reset } = useRefine('gpt-oss:20b', 0.2)
+
+  const canRefine = useMemo(() => inputText.trim().length > 0 && !state.loading, [inputText, state.loading])
+  const canReinforce = useMemo(() => outputText.trim().length > 0 && !state.loading, [outputText, state.loading])
+
+  const onRefine = useCallback(async () => {
+    const res = await run('refine', inputText)
+    if (res && res.output) setOutputText(res.output)
+  }, [run, inputText])
+
+  const onReinforce = useCallback(async () => {
+    const res = await run('reinforce', outputText)
+    if (res && res.output) setOutputText(res.output)
+  }, [run, outputText])
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -44,10 +60,21 @@ export default function Home() {
               <TokenCounter text={inputText} />
               <button 
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled
+                disabled={!canRefine}
                 aria-label="Refine prompt"
+                onClick={onRefine}
               >
                 Refine
+              </button>
+            </div>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>{statusSummary}</span>
+              <button
+                className="text-gray-400 hover:text-gray-600 focus-visible"
+                onClick={reset}
+                aria-label="Reset progress"
+              >
+                Reset
               </button>
             </div>
           </div>
@@ -87,12 +114,19 @@ export default function Home() {
                 </button>
                 <button 
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled
+                  disabled={!canReinforce}
                   aria-label="Reinforce edited prompt"
+                  onClick={onReinforce}
                 >
                   Reinforce
                 </button>
               </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-gray-500">
+                Usage: <span className="font-mono">in {state.usage?.input_tokens ?? 0} · out {state.usage?.output_tokens ?? 0}</span>
+              </div>
+              <ProgressTracker steps={state.steps} />
             </div>
           </div>
         </div>
