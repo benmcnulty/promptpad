@@ -293,7 +293,7 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                     </svg>
                   )}
                 </div>
-                <span className="text-sm text-slate-600 font-medium">Don't show this again</span>
+                <span className="text-sm text-slate-600 font-medium">Don&apos;t show this again</span>
               </label>
             </div>
 

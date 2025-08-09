@@ -57,6 +57,8 @@ function advance(steps: ProgressStep[], id: string, status: StepStatus): Progres
   return steps.map(s => (s.id === id ? { ...s, status } : s))
 }
 
+type RunResult = { output: string; patch?: PatchOp[]; systemPrompt?: string; fallbackUsed?: boolean }
+
 export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0.2) {
   const [state, setState] = useState<RefineState>({
     loading: false,
@@ -69,7 +71,7 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
     setState({ loading: false, error: null, usage: null, steps: baseSteps })
   }, [])
 
-  const run = useCallback(async (mode: RefineMode, text: string): Promise<{ output: string; patch?: PatchOp[] } | null> => {
+  const run = useCallback(async (mode: RefineMode, text: string): Promise<RunResult | null> => {
     const body: RefineRequestBody = {
       mode,
       model,
@@ -108,7 +110,7 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
         throw new Error(`Refine request failed (${res.status})`)
       }
 
-      const data: RefineResponseBody = await res.json()
+      const data = await res.json() as RefineResponseBody & { systemPrompt?: string; fallbackUsed?: boolean }
 
       steps = advance(steps, 'call', 'done')
       steps = advance(steps, 'process', 'in_progress')
@@ -121,7 +123,7 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
 
       steps = advance(steps, 'update', 'done')
       setState(prev => ({ ...prev, loading: false, steps }))
-      return { output, patch }
+      return { output, patch, systemPrompt: data.systemPrompt, fallbackUsed: data.fallbackUsed }
     } catch (err) {
       steps = advance(steps, 'call', 'error')
       const msg = err instanceof Error ? err.message : 'Unexpected error'
@@ -142,4 +144,3 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
     reset,
   }
 }
-

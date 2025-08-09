@@ -15,20 +15,19 @@ describe('StatusBar polling', () => {
   it('does not duplicate polling and polls approximately every 30s', async () => {
     render(<StatusBar />)
 
-    // Initial call
-    expect(global.fetch).toHaveBeenCalledTimes(1)
+    // Initial calls: /api/git-info and first /api/models check
+    expect(global.fetch).toHaveBeenCalledTimes(2)
 
     // Advance 29s: no new call yet (depending on timer tick granularity, allow none)
     await act(async () => {
       jest.advanceTimersByTime(29000)
     })
-    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(global.fetch).toHaveBeenCalledTimes(2)
 
     // Hit 30s
     await act(async () => {
       jest.advanceTimersByTime(1000)
     })
-    expect(global.fetch).toHaveBeenCalledTimes(2)
+    expect(global.fetch).toHaveBeenCalledTimes(3)
   })
 })
-
