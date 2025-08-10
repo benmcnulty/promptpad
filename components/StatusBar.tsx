@@ -118,12 +118,12 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
         <span className="text-slate-600 font-medium">Ollama:</span>
         <div className="flex items-center bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-md border border-white/40 shadow-soft">
           <div 
-            className={`w-2.5 h-2.5 rounded-full mr-2.5 transition-all duration-300 ${
+            className={`w-2.5 h-2.5 rounded-full mr-2.5 transition-all duration-300 status-indicator ${
               ollamaStatus === 'connected' 
-                ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' 
+                ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30 status-connected' 
                 : ollamaStatus === 'error'
-                ? 'bg-red-500 shadow-lg shadow-red-500/30'
-                : 'bg-amber-500 animate-pulse shadow-lg shadow-amber-500/30'
+                ? 'bg-red-500 shadow-lg shadow-red-500/30 animate-gentle-bounce'
+                : 'bg-amber-500 animate-pulse shadow-lg shadow-amber-500/30 checking'
             }`}
             aria-label={`Ollama status: ${ollamaStatus}`}
           />

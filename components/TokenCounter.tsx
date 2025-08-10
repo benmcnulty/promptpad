@@ -50,7 +50,7 @@ export default function TokenCounter({
       <span className="text-slate-600 font-medium">{label}:</span>
       <span className="font-mono ml-3 text-base">
         {showLoader && isLoading ? (
-          <span className="animate-pulse text-slate-500 font-medium">⋯</span>
+          <span className="animate-pulse text-slate-500 font-medium shimmer-effect">⋯</span>
         ) : (
           <span className="text-gradient font-bold">
             {count.toLocaleString()}

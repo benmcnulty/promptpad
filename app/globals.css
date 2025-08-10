@@ -356,4 +356,201 @@ body {
       letter-spacing: 0.025em;
     }
   }
+
+  /* Professional cursor styles */
+  .cursor-button {
+    cursor: pointer;
+  }
+  .cursor-button:disabled {
+    cursor: not-allowed;
+  }
+  .cursor-text-selection {
+    cursor: text;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .cursor-default {
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .cursor-copy {
+    cursor: copy;
+  }
+  .cursor-grab {
+    cursor: grab;
+  }
+  .cursor-grab:active {
+    cursor: grabbing;
+  }
+
+  /* Remove text cursor from non-editable text elements */
+  h1, h2, h3, h4, h5, h6, p, span:not(.cursor-text-selection), div:not(.cursor-text-selection), label {
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Preserve text selection for specific content */
+  .selectable-text {
+    cursor: text;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Interactive element enhancements */
+  button, .cursor-button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  button:hover:not(:disabled), .cursor-button:hover {
+    transform: translateY(-1px);
+  }
+  button:active:not(:disabled), .cursor-button:active {
+    transform: translateY(0);
+  }
+
+  /* Link hover effects */
+  a {
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  a:hover {
+    transform: translateY(-0.5px);
+  }
+
+  /* Select and input enhancements */
+  select, input, textarea {
+    cursor: text;
+    transition: all 0.2s ease;
+  }
+  select {
+    cursor: pointer;
+  }
+  select:hover, input:hover, textarea:hover {
+    transform: translateY(-0.5px);
+  }
+  select:focus, input:focus, textarea:focus {
+    transform: translateY(0);
+  }
+
+  /* Professional microanimations */
+  @keyframes gentleBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+  
+  @keyframes fadeInUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+  
+  @keyframes scaleIn {
+    from { 
+      opacity: 0; 
+      transform: scale(0.95); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+
+  @keyframes slideInRight {
+    from { 
+      opacity: 0; 
+      transform: translateX(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Utility classes for microanimations */
+  .animate-gentle-bounce {
+    animation: gentleBounce 0.3s ease-out;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s ease-out;
+  }
+
+  .shimmer-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-effect:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+  }
+
+  /* Enhanced glass morphism with subtle animations */
+  .glass-enhanced {
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .glass-enhanced:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Status indicator animations */
+  @keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  
+  .status-indicator {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .status-indicator.checking:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  .status-connected {
+    animation: statusPulse 2s ease-in-out infinite;
+  }
 }

@@ -66,7 +66,7 @@ export default function Home() {
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
-  }, [outputText]);
+  }, [outputText]); // Include outputText dependency
 
   const onRefine = useCallback(async () => {
     const requestPayload = {
@@ -110,7 +110,7 @@ export default function Home() {
     } catch (error) {
       addDebugLog("system", `💥 Error: ${error}`);
     }
-  }, [run, inputText, outputText, addDebugLog]);
+  }, [run, inputText, addDebugLog]);
 
   const onReinforce = useCallback(async () => {
     const warnTimer = setTimeout(() => {
@@ -143,7 +143,7 @@ export default function Home() {
       {/* Main Content - Split Layout */}
       <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
         {/* Left Pane - Input */}
-        <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden min-h-0">
+        <div className="flex-1 lg:w-1/2 flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden min-h-0 animate-fade-in-up">
           <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -161,7 +161,7 @@ export default function Home() {
           </div>
           <div className="flex-1 p-4 min-h-0">
             <textarea
-              className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-[color:var(--primary-start)] placeholder:text-slate-700 text-slate-900"
+              className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-[color:var(--primary-start)] placeholder:text-slate-700 text-slate-900 cursor-text-selection"
               placeholder={`Enter your prompt ideas here...\n\nExample: "Create a marketing email for new product launch"\n\nPress Refine to expand into a structured, copy-ready prompt.`}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -204,7 +204,7 @@ export default function Home() {
           </div>
         </div>
         {/* Right Pane - Output */}
-        <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden mt-4 lg:mt-0 min-h-0">
+        <div className="flex-1 lg:w-1/2 flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden mt-4 lg:mt-0 min-h-0 animate-slide-in-right">
           <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -222,7 +222,7 @@ export default function Home() {
           </div>
           <div className="flex-1 p-4 min-h-0 relative">
             <textarea
-              className={`w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900 ${state.loading ? 'pointer-events-none' : ''}`}
+              className={`w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900 cursor-text-selection ${state.loading ? 'pointer-events-none' : ''}`}
               placeholder={`Your refined prompt will appear here...\n\nAfter refining, you can edit the output and use 'Reinforce' to tighten and optimize your changes.`}
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
@@ -267,8 +267,8 @@ export default function Home() {
                     onClick={copyToClipboard}
                     className={`flex items-center px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 ${
                       copySuccess 
-                        ? 'bg-emerald-500 text-white shadow-lg' 
-                        : 'bg-white/60 hover:bg-white/80 text-slate-600 hover:text-slate-800 border border-white/40 shadow-soft'
+                        ? 'bg-emerald-500 text-white shadow-lg cursor-default transform scale-105' 
+                        : 'bg-white/60 hover:bg-white/80 text-slate-600 hover:text-slate-800 border border-white/40 shadow-soft cursor-copy hover:scale-105'
                     }`}
                     aria-label="Copy refined prompt to clipboard"
                   >
@@ -304,7 +304,7 @@ export default function Home() {
                 </button>
                 <button
                   type="button"
-                  className="gradient-secondary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center"
+                  className="gradient-secondary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center cursor-button"
                   disabled={!canReinforce}
                   aria-label="Reinforce edited prompt"
                   onClick={onReinforce}
@@ -409,7 +409,7 @@ export default function Home() {
           onClick={dismissWelcome}
         >
           <div
-            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto"
+            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto animate-scale-in"
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
           >
