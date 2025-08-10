@@ -123,7 +123,7 @@ export default function Home() {
       {/* Header */}
       <header className="glass border-b border-white/20 px-6 py-4 backdrop-blur-md flex-shrink-0">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-gradient">
             Promptpad
           </h1>
           <div className="text-sm text-slate-600 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/40 shadow-soft">
@@ -136,7 +136,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-4 min-h-0 overflow-hidden">
         {/* Left Pane - Input */}
         <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden min-h-0">
-          <div className="gradient-primary p-4 flex-shrink-0">
+          <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -153,7 +153,7 @@ export default function Home() {
           </div>
           <div className="flex-1 p-4 min-h-0">
             <textarea
-              className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-emerald-300 placeholder:text-slate-700 text-slate-900"
+              className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-[color:var(--primary-start)] placeholder:text-slate-700 text-slate-900"
               placeholder={`Enter your prompt ideas here...\n\nExample: "Create a marketing email for new product launch"\n\nPress Refine to expand into a structured, copy-ready prompt.`}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -224,18 +224,18 @@ export default function Home() {
             
             {/* Loading Overlay */}
             {state.loading && (
-              <div className="absolute inset-4 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 backdrop-blur-sm border-2 border-cyan-300/50 rounded-lg flex items-center justify-center">
+              <div className="absolute inset-4 backdrop-blur-sm border-2 rounded-lg flex items-center justify-center loading-sheen">
                 <div className="flex flex-col items-center space-y-4">
                   {/* Animated Gradient Spinner */}
                   <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 border-4 border-transparent border-t-cyan-500 border-r-violet-500 rounded-full animate-spin"></div>
-                    <div className="absolute inset-2 border-4 border-transparent border-b-emerald-500 border-l-blue-500 rounded-full animate-spin animate-reverse animate-spin-delay"></div>
-                    <div className="absolute inset-4 w-4 h-4 bg-gradient-to-br from-cyan-500 to-violet-500 rounded-full animate-pulse"></div>
+                    <div className="absolute inset-0 border-4 border-transparent rounded-full animate-spin loading-spinner-outer"></div>
+                    <div className="absolute inset-2 border-4 border-transparent rounded-full animate-spin animate-reverse animate-spin-delay loading-spinner-inner"></div>
+                    <div className="absolute inset-4 w-4 h-4 rounded-full animate-pulse loading-core"></div>
                   </div>
                   
                   {/* Loading Text */}
                   <div className="text-center">
-                    <div className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-violet-600 bg-clip-text text-transparent mb-1">
+                    <div className="text-lg font-semibold mb-1 bg-clip-text text-transparent loading-title-gradient">
                       Refining Prompt...
                     </div>
                     <div className="text-sm text-slate-600 animate-pulse">
@@ -245,9 +245,12 @@ export default function Home() {
                   
                   {/* Animated Dots */}
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full animate-bounce animate-bounce-delay-1"></div>
-                    <div className="w-2 h-2 bg-gradient-to-r from-violet-500 to-emerald-500 rounded-full animate-bounce animate-bounce-delay-2"></div>
+                    {[0,1,2].map(i => (
+                      <div
+                        key={i}
+                        className={`w-2 h-2 rounded-full animate-bounce loading-dot-gradient ${i===1 ? 'animate-bounce-delay-1' : ''} ${i===2 ? 'animate-bounce-delay-2' : ''}`}
+                      ></div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -331,6 +334,16 @@ export default function Home() {
           <div className="p-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
             <span className="text-green-300 font-semibold">🖥️ Debug Terminal</span>
             <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => { localStorage.removeItem('promptpad-welcome-dismissed'); setShowWelcome(true); setDontShowAgain(false); }}
+                className="px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded text-xs transition-colors duration-200"
+                title="Reset welcome modal dismissed setting"
+                aria-label="Reset welcome modal"
+                data-testid="reset-welcome"
+              >
+                Reset Welcome
+              </button>
               <button
                 type="button"
                 onClick={clearDebugLogs}

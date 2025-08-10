@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import Home from '@/app/page'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 describe('Home Page', () => {
   beforeEach(() => {
@@ -8,7 +9,7 @@ describe('Home Page', () => {
   })
 
   it('renders the welcome modal initially', () => {
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     // Welcome modal should be visible initially
     expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -17,7 +18,7 @@ describe('Home Page', () => {
   })
 
   it('renders the Promptpad application shell after dismissing welcome modal', async () => {
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     // Dismiss the welcome modal
     fireEvent.click(screen.getByRole('button', { name: 'Get Started' }))
@@ -41,7 +42,7 @@ describe('Home Page', () => {
   it('displays interactive text areas and disabled action buttons', async () => {
     // Set localStorage to skip welcome modal
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     // Text areas should be enabled 
     expect(screen.getByLabelText('Prompt input area')).toBeEnabled()
@@ -56,7 +57,7 @@ describe('Home Page', () => {
   it('shows token counters', () => {
     // Set localStorage to skip welcome modal
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     // Should show token counts (initially 0)
     const tokenCounts = screen.getAllByText(/Tokens:/)
@@ -67,7 +68,7 @@ describe('Home Page', () => {
   })
 
   it('displays welcome modal with setup instructions', () => {
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     expect(screen.getByText('Welcome to Promptpad')).toBeInTheDocument()
     expect(screen.getByText(/Your local-first prompt drafting tool/)).toBeInTheDocument()
@@ -77,7 +78,7 @@ describe('Home Page', () => {
   it('includes status bar', () => {
     // Set localStorage to skip welcome modal
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     // Status bar should be present
     expect(screen.getByLabelText('Application status bar')).toBeInTheDocument()
@@ -86,7 +87,7 @@ describe('Home Page', () => {
   it('has proper accessibility roles and focus management', () => {
     // Set localStorage to skip welcome modal
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-    render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
     
     // Main landmarks should be present
     expect(screen.getByRole('banner')).toBeInTheDocument() // header

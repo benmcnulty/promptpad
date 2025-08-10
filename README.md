@@ -174,7 +174,7 @@ OLLAMA_MOCK=1                            # Use mock responses for testing
 
 ### Color Palette
 - **Primary Gradient**: Emerald-500 → Blue-500  
-- **Secondary Gradient**: Cyan-500 → Violet-500
+- **Secondary Gradient**: Dynamically derived from the selected accent (no fixed purple)
 - **Glass Morphism**: Semi-transparent backgrounds with backdrop blur
 - **Focus States**: Emerald/blue gradient focus rings
 

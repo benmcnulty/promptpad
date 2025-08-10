@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Home from '@/app/page'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 // Mock navigator.clipboard
 const mockWriteText = jest.fn()
@@ -21,7 +22,7 @@ describe('Home Page - New Features', () => {
   describe('Copy to Clipboard', () => {
     it('shows copy button when output text exists', async () => {
       const user = userEvent.setup()
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const outputTextarea = screen.getByLabelText('Prompt output area')
       await user.type(outputTextarea, 'Test output content')
@@ -30,7 +31,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('does not show copy button when output is empty', () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       expect(screen.queryByRole('button', { name: 'Copy refined prompt to clipboard' })).not.toBeInTheDocument()
     })
@@ -39,7 +40,7 @@ describe('Home Page - New Features', () => {
       const user = userEvent.setup()
       mockWriteText.mockResolvedValue(undefined)
       
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const outputTextarea = screen.getByLabelText('Prompt output area')
       await user.type(outputTextarea, 'Test prompt to copy')
@@ -72,7 +73,7 @@ describe('Home Page - New Features', () => {
   describe('Loading States', () => {
     it('shows loading overlay when refine is in progress', async () => {
       const user = userEvent.setup()
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const inputTextarea = screen.getByLabelText('Prompt input area')
       await user.type(inputTextarea, 'Test input')
@@ -87,7 +88,7 @@ describe('Home Page - New Features', () => {
     it('disables output textarea during loading', async () => {
       // This test would require mocking the loading state
       // Currently verifying the conditional structure exists
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const outputTextarea = screen.getByLabelText('Prompt output area')
       expect(outputTextarea).toBeInTheDocument()
@@ -100,7 +101,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('shows welcome modal on first visit', () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       expect(screen.getByRole('dialog')).toBeInTheDocument()
       expect(screen.getByText('Welcome to Promptpad')).toBeInTheDocument()
@@ -109,7 +110,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('can be dismissed with Get Started button', async () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       fireEvent.click(screen.getByRole('button', { name: 'Get Started' }))
       
@@ -119,7 +120,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('can be dismissed with close button', async () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       fireEvent.click(screen.getByRole('button', { name: 'Close welcome message' }))
       
@@ -129,7 +130,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('can be dismissed with ESC key', async () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       fireEvent.keyDown(window, { key: 'Escape' })
       
@@ -139,7 +140,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('persists dismissal when checkbox is checked', async () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const checkbox = screen.getByRole('checkbox', { name: /don't show this again/i })
       fireEvent.click(checkbox)
@@ -155,13 +156,13 @@ describe('Home Page - New Features', () => {
 
   describe('Debug Panel', () => {
     it('shows debug toggle in status bar', () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       expect(screen.getByRole('button', { name: /debug/i })).toBeInTheDocument()
     })
 
     it('opens debug panel when debug button clicked', async () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const debugButton = screen.getByRole('button', { name: /debug/i })
       fireEvent.click(debugButton)
@@ -175,7 +176,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('shows no logs message initially', async () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const debugButton = screen.getByRole('button', { name: /debug/i })
       fireEvent.click(debugButton)
@@ -188,7 +189,7 @@ describe('Home Page - New Features', () => {
 
   describe('Responsive Design', () => {
     it('renders with responsive layout classes', () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       // Main container should have responsive flex classes
       const mainElement = screen.getByRole('main')
@@ -196,7 +197,7 @@ describe('Home Page - New Features', () => {
     })
 
     it('has responsive token counter layout', () => {
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const tokenCounters = screen.getAllByLabelText(/Tokens:/)
       tokenCounters.forEach(counter => {
@@ -211,7 +212,7 @@ describe('Home Page - New Features', () => {
   describe('Enhanced Button States', () => {
     it('enables refine button when input has content', async () => {
       const user = userEvent.setup()
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const refineButton = screen.getByLabelText('Refine prompt')
       expect(refineButton).toBeDisabled()
@@ -226,7 +227,7 @@ describe('Home Page - New Features', () => {
 
     it('enables reinforce button when output has content', async () => {
       const user = userEvent.setup()
-      render(<Home />)
+  render(<ThemeProvider><Home /></ThemeProvider>)
       
       const reinforceButton = screen.getByLabelText('Reinforce edited prompt')
       expect(reinforceButton).toBeDisabled()

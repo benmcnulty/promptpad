@@ -79,12 +79,12 @@ export default function ProgressTracker({ steps, className = '', compact = false
               <div className={`
                 relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300
                 ${
-                  isCompleted 
-                    ? 'gradient-primary text-white shadow-soft' 
-                    : hasError 
+                  isCompleted
+                    ? 'gradient-primary text-white shadow-soft'
+                    : hasError
                     ? 'bg-red-500 text-white shadow-soft'
-                    : isActive 
-                    ? 'bg-white border-2 border-emerald-500 text-emerald-600 shadow-soft animate-pulse-glow'
+                    : isActive
+                    ? 'progress-step-active shadow-soft animate-pulse-glow'
                     : 'bg-slate-100 text-slate-400 border border-slate-200'
                 }
               `}>
@@ -99,15 +99,15 @@ export default function ProgressTracker({ steps, className = '', compact = false
               
               {/* Label */}
               <span className={`
-                text-xs text-center font-medium transition-colors duration-200 truncate max-w-full px-1
+                text-xs text-center font-medium transition-colors duration-200 leading-tight max-w-[6rem] px-1 break-words
                 ${
-                  isCompleted 
-                    ? 'text-emerald-700' 
-                    : hasError 
+                  isCompleted
+                    ? 'progress-step-label-completed'
+                    : hasError
                     ? 'text-red-600'
-                    : isActive 
-                    ? 'text-slate-900 font-semibold'
-                    : 'text-slate-500'
+                    : isActive
+                    ? 'progress-step-label-active'
+                    : 'progress-step-label-pending'
                 }
               `}>
                 {step.label}
@@ -119,8 +119,8 @@ export default function ProgressTracker({ steps, className = '', compact = false
                   absolute top-4 left-1/2 w-full h-0.5 -z-10 transition-colors duration-300
                   ${
                     steps[idx + 1].status === 'done' || steps[idx + 1].status === 'in_progress'
-                      ? 'bg-emerald-300'
-                      : 'bg-slate-200'
+                      ? 'progress-step-connection-active'
+                      : 'progress-step-connection-inactive'
                   }
                 `} style={{ transform: 'translateX(50%)' }} />
               )}

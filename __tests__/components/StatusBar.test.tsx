@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import StatusBar from '@/components/StatusBar'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 // Mock fetch for component tests
 const mockFetch = jest.fn()
@@ -22,7 +23,7 @@ describe('StatusBar', () => {
       json: async () => ({ models: [{ name: 'gpt-oss:20b' }] }),
     })
 
-    render(<StatusBar />)
+  render(<ThemeProvider><StatusBar /></ThemeProvider>)
     
     // Check for status bar role
     expect(screen.getByRole('status')).toBeInTheDocument()
@@ -45,6 +46,10 @@ describe('StatusBar', () => {
     await waitFor(() => {
       expect(screen.getByText('Connected')).toBeInTheDocument()
     })
+
+  // Ensure accent select has normalization class for cross-browser consistency
+  const accentSelect = screen.getByLabelText('Select accent color')
+  expect(accentSelect).toHaveClass('select-reset')
   })
 
   it('displays checking status initially then updates', async () => {
@@ -61,7 +66,7 @@ describe('StatusBar', () => {
       }), 100))
     )
 
-    render(<StatusBar />)
+  render(<ThemeProvider><StatusBar /></ThemeProvider>)
     
     // Should show checking status initially
     expect(screen.getByText('Checking...')).toBeInTheDocument()
@@ -83,7 +88,7 @@ describe('StatusBar', () => {
     // Second call: /api/models fails
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-    render(<StatusBar />)
+  render(<ThemeProvider><StatusBar /></ThemeProvider>)
 
     await waitFor(() => {
       expect(screen.getByText('Error')).toBeInTheDocument()
@@ -101,7 +106,7 @@ describe('StatusBar', () => {
     // Second: /api/models error
     mockFetch.mockResolvedValueOnce({ ok: false, status: 503 })
 
-    render(<StatusBar />)
+  render(<ThemeProvider><StatusBar /></ThemeProvider>)
 
     await waitFor(() => {
       expect(screen.getByText('Error')).toBeInTheDocument()
@@ -118,7 +123,7 @@ describe('StatusBar', () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ models: [] }) })
 
     const customClass = 'custom-status-bar'
-    const { container } = render(<StatusBar className={customClass} />)
+  const { container } = render(<ThemeProvider><StatusBar className={customClass} /></ThemeProvider>)
     
     expect(container.firstChild).toHaveClass(customClass)
   })

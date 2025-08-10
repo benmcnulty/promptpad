@@ -1,5 +1,6 @@
 import { render, screen, act } from '@testing-library/react'
 import StatusBar from '@/components/StatusBar'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 describe('StatusBar polling', () => {
   const originalFetch = global.fetch
@@ -13,7 +14,7 @@ describe('StatusBar polling', () => {
   })
 
   it('does not duplicate polling and polls approximately every 30s', async () => {
-    render(<StatusBar />)
+  render(<ThemeProvider><StatusBar /></ThemeProvider>)
 
     // Initial calls: /api/git-info and first /api/models check
     expect(global.fetch).toHaveBeenCalledTimes(2)

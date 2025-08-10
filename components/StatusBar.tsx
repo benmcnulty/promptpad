@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTheme } from '@/components/ThemeProvider'
 
 interface StatusBarProps {
   className?: string
@@ -14,6 +15,7 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
   const inFlight = useRef<AbortController | null>(null)
   const intervalId = useRef<number | null>(null)
   const mounted = useRef<boolean>(false)
+  const { theme, toggleTheme, accent, setAccent, accents } = useTheme()
 
   useEffect(() => {
     // Get git SHA from build time or runtime
@@ -112,7 +114,7 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
         </span>
       </div>
 
-      <div className="flex items-center space-x-3">
+  <div className="flex items-center space-x-3">
         <span className="text-slate-600 font-medium">Ollama:</span>
         <div className="flex items-center bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-md border border-white/40 shadow-soft">
           <div 
@@ -131,6 +133,37 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
           </span>
         </div>
         
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1 bg-white/60 text-slate-600 hover:bg-white/80 border border-white/40"
+          title="Toggle light/dark mode"
+          aria-label="Toggle color theme"
+        >
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            {theme === 'dark' ? (
+              <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.03a1 1 0 011.415 1.414l-.708.707a1 1 0 11-1.414-1.414l.707-.707zM18 9a1 1 0 100 2h-1a1 1 0 100-2h1zM5.025 4.03a1 1 0 010 1.415L4.318 6.15a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 15a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm6.364-2.95a1 1 0 00-1.414 1.414l.707.708a1 1 0 001.414-1.415l-.707-.707zM4.343 10a1 1 0 01-1 1H3a1 1 0 110-2h.343a1 1 0 011 1zm1.282 4.95a1 1 0 00-1.414 1.414l.707.708a1 1 0 001.414-1.415l-.707-.707zM14 10a4 4 0 11-8 0 4 4 0 018 0z" />
+            ) : (
+              <path fillRule="evenodd" d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" clipRule="evenodd" />
+            )}
+          </svg>
+          <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+        </button>
+
+        {/* Accent select */}
+        <label className="sr-only" htmlFor="accent-select">Accent color</label>
+        <select
+          id="accent-select"
+          value={accent}
+            onChange={e => setAccent(e.target.value as any)}
+          className="select-reset bg-white/60 text-slate-600 hover:bg-white/80 border border-white/40 px-2 py-1.5 text-xs rounded-md font-medium focus-visible"
+          aria-label="Select accent color"
+        >
+          {accents.map(a => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+
         {/* Debug Toggle */}
         {onDebugToggle && (
           <button

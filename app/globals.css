@@ -3,13 +3,23 @@
 @tailwind utilities;
 
 :root {
-  /* Primary gradient colors */
-  --primary-start: #10b981; /* emerald-500 */
-  --primary-end: #3b82f6;   /* blue-500 */
-  
-  /* Secondary gradient colors */
-  --secondary-start: #06b6d4; /* cyan-500 */
-  --secondary-end: #8b5cf6;   /* violet-500 */
+  /* Dynamic accent (default emerald) */
+  --accent-hue-emerald-start: #10b981; /* emerald-500 */
+  --accent-hue-emerald-end: #059669;   /* emerald-600 */
+  --accent-hue-blue-start: #3b82f6; /* blue-500 */
+  --accent-hue-blue-end: #2563eb;   /* blue-600 */
+  --accent-hue-cyan-start: #06b6d4; /* cyan-500 */
+  --accent-hue-cyan-end: #0891b2;   /* cyan-600 */
+  --accent-hue-amber-start: #f59e0b; /* amber-500 */
+  --accent-hue-amber-end: #d97706;   /* amber-600 */
+  --accent-hue-rose-start: #f43f5e; /* rose-500 */
+  --accent-hue-rose-end: #e11d48;   /* rose-600 */
+
+  /* Neutral fallback prior to accent attribute application */
+  --primary-start: #64748b; /* slate-500 */
+  --primary-end: #334155;   /* slate-700 */
+  --secondary-start: #94a3b8; /* slate-400 */
+  --secondary-end: #64748b;   /* slate-500 */
   
   /* Surface colors */
   --surface-primary: #f0fdf4;   /* green-50 */
@@ -28,7 +38,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --surface-primary: #0f1419;
     --surface-secondary: #111827;
     --surface-tertiary: #1f2937;
@@ -41,6 +51,52 @@
   }
 }
 
+/* Explicit theme overrides */
+[data-theme="dark"] {
+  --surface-primary: #0f1419;
+  --surface-secondary: #111827;
+  --surface-tertiary: #1f2937;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border-light: #374151;
+  --border-medium: #4b5563;
+  --border-strong: #6b7280;
+}
+
+/* Accent variants */
+[data-accent="emerald"] {
+  /* Teal -> green gradient for both primary & secondary for cohesion */
+  --primary-start: var(--accent-hue-cyan-start);
+  --primary-end: var(--accent-hue-emerald-end);
+  --secondary-start: var(--accent-hue-cyan-start);
+  --secondary-end: var(--accent-hue-emerald-end);
+}
+[data-accent="blue"] {
+  --primary-start: var(--accent-hue-blue-start);
+  --primary-end: var(--accent-hue-cyan-start);
+  --secondary-start: var(--accent-hue-blue-end);
+  --secondary-end: var(--accent-hue-cyan-start);
+}
+[data-accent="cyan"] {
+  --primary-start: var(--accent-hue-cyan-start);
+  --primary-end: var(--accent-hue-blue-start);
+  --secondary-start: var(--accent-hue-cyan-end);
+  --secondary-end: var(--accent-hue-blue-end);
+}
+[data-accent="amber"] {
+  --primary-start: var(--accent-hue-amber-start);
+  --primary-end: var(--accent-hue-rose-start);
+  --secondary-start: var(--accent-hue-amber-end);
+  --secondary-end: var(--accent-hue-rose-end);
+}
+[data-accent="rose"] {
+  --primary-start: var(--accent-hue-rose-start);
+  --primary-end: var(--accent-hue-amber-start);
+  --secondary-start: var(--accent-hue-rose-end);
+  --secondary-end: var(--accent-hue-amber-end);
+}
+
 body {
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--surface-primary) 0%, var(--surface-secondary) 100%);
@@ -50,9 +106,7 @@ body {
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { /* balance fallback */ -webkit-hyphens: auto; hyphens: auto; }
 
   /* Custom gradient backgrounds */
   .gradient-primary {
@@ -69,9 +123,10 @@ body {
   
   /* Glass morphism effect */
   .glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px); /* Safari */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   }
   
   /* Enhanced shadows */
@@ -85,15 +140,19 @@ body {
 
   /* Focus styles for accessibility */
   .focus-visible {
-    @apply outline-2 outline-offset-2;
+    outline-width: 2px;
+    outline-style: solid;
+    outline-offset: 2px;
     outline-color: var(--primary-end);
   }
   
   /* Custom focus ring for form elements */
   .form-control:focus-visible {
-    @apply outline-2 outline-offset-2 ring-2 ring-offset-2;
+    outline-width: 2px;
+    outline-style: solid;
+    outline-offset: 2px;
     outline-color: var(--primary-end);
-    --tw-ring-color: var(--primary-start);
+    box-shadow: 0 0 0 2px var(--primary-start), 0 0 0 4px rgba(255,255,255,0.4);
   }
   
   /* Progress animations */
@@ -113,14 +172,8 @@ body {
   }
   
   /* Custom scrollbar */
-  .scrollbar-hidden {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .scrollbar-hidden::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-hidden { -ms-overflow-style: none; }
+  .scrollbar-hidden::-webkit-scrollbar { display: none; }
   
   /* Animation utilities */
   .animate-reverse {
@@ -139,4 +192,52 @@ body {
   .animate-bounce-delay-2 {
     animation-delay: 0.2s;
   }
+
+  /* Dynamic accent driven loading overlay utilities */
+  .loading-sheen {
+    background: linear-gradient(135deg, var(--secondary-start) 20%, var(--secondary-end) 80%);
+    border-color: var(--secondary-start);
+  }
+  .loading-spinner-outer {
+    border-top-color: var(--primary-start);
+    border-right-color: var(--primary-end);
+  }
+  .loading-spinner-inner {
+    border-bottom-color: var(--secondary-start);
+    border-left-color: var(--secondary-end);
+  }
+  .loading-core {
+    background: linear-gradient(135deg, var(--primary-start), var(--secondary-end));
+  }
+  .loading-title-gradient {
+    background: linear-gradient(90deg, var(--primary-start), var(--secondary-end));
+  }
+  .loading-dot-gradient {
+    background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+  }
+
+  /* Progress tracker dynamic classes */
+  .progress-step-active { border: 2px solid var(--primary-start); color: var(--primary-end); background: #fff; }
+  .progress-step-connection-active { background: var(--primary-start); opacity: 0.6; }
+  .progress-step-connection-inactive { background: #e2e8f0; }
+  .progress-step-label-completed { color: var(--primary-start); }
+  .progress-step-label-active { color: var(--text-primary); font-weight: 600; }
+  .progress-step-label-pending { color: #64748b; }
+
+  /* Safari gradient text fix */
+  .text-gradient-fix { -webkit-text-fill-color: transparent; }
+
+  /* Dedicated gradient text utility to avoid block background issues */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary-start) 0%, var(--primary-end) 100%);
+    -webkit-background-clip: text; /* Safari */
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Cross-browser select normalization */
+  .select-reset { -webkit-appearance: none; appearance: none; background-image: none; font-family: inherit; line-height: 1.25; }
+  .select-reset:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-start) inset; }
+  .select-reset option { font-family: inherit; font-size: 0.75rem; }
 }

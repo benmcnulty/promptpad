@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Added
+- Light/Dark mode toggle with system preference default and persistence
+- Dynamic accent color system with selectable hues (emerald, blue, cyan, amber, rose)
+- Accent dropdown in StatusBar beside theme toggle
+- Hidden debug action to reset welcome modal localStorage flag for testing
 - Ollama API adapter with health checks, model listing, and text generation
 - GET /api/models endpoint with graceful degradation and mock mode support
 - POST /api/refine endpoint supporting refine/reinforce per frozen contract
