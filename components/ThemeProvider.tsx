@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, ReactNode } from 'react'
 
 type Theme = 'light' | 'dark'
-type Accent = 'emerald' | 'blue' | 'amber' | 'rose' | 'cyan'
+type Accent = 'emerald' | 'sapphire' | 'violet' | 'coral' | 'golden'
 
 interface ThemeContextValue {
   theme: Theme
@@ -18,7 +18,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 const THEME_KEY = 'promptpad-theme'
 const ACCENT_KEY = 'promptpad-accent'
 
-const ACCENTS: Accent[] = ['emerald', 'blue', 'cyan', 'amber', 'rose']
+const ACCENTS: Accent[] = ['emerald', 'sapphire', 'violet', 'coral', 'golden']
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light')

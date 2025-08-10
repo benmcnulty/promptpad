@@ -4,17 +4,17 @@
 
 :root {
   --ui-font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  /* Dynamic accent (default emerald) */
+  /* Dynamic accent palette with unique gradients */
   --accent-hue-emerald-start: #10b981; /* emerald-500 */
   --accent-hue-emerald-end: #059669;   /* emerald-600 */
-  --accent-hue-blue-start: #3b82f6; /* blue-500 */
-  --accent-hue-blue-end: #2563eb;   /* blue-600 */
-  --accent-hue-cyan-start: #06b6d4; /* cyan-500 */
-  --accent-hue-cyan-end: #0891b2;   /* cyan-600 */
-  --accent-hue-amber-start: #f59e0b; /* amber-500 */
-  --accent-hue-amber-end: #d97706;   /* amber-600 */
-  --accent-hue-rose-start: #f43f5e; /* rose-500 */
-  --accent-hue-rose-end: #e11d48;   /* rose-600 */
+  --accent-hue-sapphire-start: #0ea5e9; /* sky-500 */
+  --accent-hue-sapphire-end: #0284c7;   /* sky-600 */
+  --accent-hue-violet-start: #8b5cf6;   /* violet-500 */
+  --accent-hue-violet-end: #7c3aed;     /* violet-600 */
+  --accent-hue-coral-start: #f97316;    /* orange-500 */
+  --accent-hue-coral-end: #ea580c;      /* orange-600 */
+  --accent-hue-golden-start: #eab308;   /* yellow-500 */
+  --accent-hue-golden-end: #ca8a04;     /* yellow-600 */
 
   /* Neutral fallback prior to accent attribute application */
   --primary-start: #64748b; /* slate-500 */
@@ -65,37 +65,41 @@
   --border-strong: #6b7280;
 }
 
-/* Accent variants */
+/* Accent variants with unique gradient combinations */
 [data-accent="emerald"] {
-  /* Teal -> green gradient for both primary & secondary for cohesion */
-  --primary-start: var(--accent-hue-cyan-start);
+  /* Ocean depths: teal to emerald */
+  --primary-start: #14b8a6;   /* teal-500 */
   --primary-end: var(--accent-hue-emerald-end);
-  --secondary-start: var(--accent-hue-cyan-start);
-  --secondary-end: var(--accent-hue-emerald-end);
+  --secondary-start: #0d9488; /* teal-600 */
+  --secondary-end: var(--accent-hue-emerald-start);
 }
-[data-accent="blue"] {
-  --primary-start: var(--accent-hue-blue-start);
-  --primary-end: var(--accent-hue-cyan-start);
-  --secondary-start: var(--accent-hue-blue-end);
-  --secondary-end: var(--accent-hue-cyan-start);
+[data-accent="sapphire"] {
+  /* Arctic aurora: cyan to deep blue */
+  --primary-start: #06b6d4;   /* cyan-500 */
+  --primary-end: var(--accent-hue-sapphire-end);
+  --secondary-start: #0891b2; /* cyan-600 */
+  --secondary-end: var(--accent-hue-sapphire-start);
 }
-[data-accent="cyan"] {
-  --primary-start: var(--accent-hue-cyan-start);
-  --primary-end: var(--accent-hue-blue-start);
-  --secondary-start: var(--accent-hue-cyan-end);
-  --secondary-end: var(--accent-hue-blue-end);
+[data-accent="violet"] {
+  /* Twilight magic: indigo to violet */
+  --primary-start: #6366f1;   /* indigo-500 */
+  --primary-end: var(--accent-hue-violet-end);
+  --secondary-start: #4f46e5; /* indigo-600 */
+  --secondary-end: var(--accent-hue-violet-start);
 }
-[data-accent="amber"] {
-  --primary-start: var(--accent-hue-amber-start);
-  --primary-end: var(--accent-hue-rose-start);
-  --secondary-start: var(--accent-hue-amber-end);
-  --secondary-end: var(--accent-hue-rose-end);
+[data-accent="coral"] {
+  /* Sunset glow: pink to orange */
+  --primary-start: #ec4899;   /* pink-500 */
+  --primary-end: var(--accent-hue-coral-end);
+  --secondary-start: #db2777; /* pink-600 */
+  --secondary-end: var(--accent-hue-coral-start);
 }
-[data-accent="rose"] {
-  --primary-start: var(--accent-hue-rose-start);
-  --primary-end: var(--accent-hue-amber-start);
-  --secondary-start: var(--accent-hue-rose-end);
-  --secondary-end: var(--accent-hue-amber-end);
+[data-accent="golden"] {
+  /* Dawn light: amber to yellow */
+  --primary-start: #f59e0b;   /* amber-500 */
+  --primary-end: var(--accent-hue-golden-end);
+  --secondary-start: #d97706; /* amber-600 */
+  --secondary-end: var(--accent-hue-golden-start);
 }
 
 body {
@@ -246,17 +250,41 @@ body {
   .loading-progress-bar:before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,var(--primary-start),var(--primary-end)); animation: progressSlide 2.2s ease-in-out infinite; }
   @keyframes progressSlide { 0%{ transform:translateX(-100%);} 50%{ transform:translateX(0);} 100%{ transform:translateX(100%);} }
   .loading-text-strong { 
-    background: linear-gradient(90deg, var(--primary-start), var(--secondary-end)); 
-    -webkit-background-clip:text; background-clip:text; 
-  color:transparent; font-weight:600; letter-spacing:.35px; 
-  /* Subtle depth without heavy embossed look */
-  text-shadow: 0 1px 1.5px rgba(0,0,0,0.35), 0 0 2px rgba(0,0,0,0.25);
-  -webkit-text-stroke: 0.25px rgba(255,255,255,0.25); /* lighter stroke for Safari legibility */
-  filter: drop-shadow(0 0 2px rgba(0,0,0,0.15));
+    background: linear-gradient(135deg, var(--primary-start), var(--secondary-end)); 
+    -webkit-background-clip: text; 
+    background-clip: text; 
+    color: transparent; 
+    font-weight: 700; 
+    letter-spacing: 0.5px;
+    /* Enhanced "raised" effect with light source from top-left */
+    text-shadow: 
+      /* Primary highlight (light from top-left) */
+      -1px -1px 2px rgba(255,255,255,0.8),
+      /* Secondary highlight for depth */
+      -0.5px -0.5px 1px rgba(255,255,255,0.6),
+      /* Shadow for depth (bottom-right) */
+      1px 1px 3px rgba(0,0,0,0.4),
+      /* Subtle ambient glow */
+      0 0 8px rgba(0,0,0,0.2);
+    /* Enhanced stroke for definition */
+    -webkit-text-stroke: 0.5px rgba(255,255,255,0.4);
+    /* Additional depth filter */
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
   }
   .loading-subtle { 
-  color:#0f172a; opacity:.8; font-weight:500; 
-  text-shadow: 0 1px 1px rgba(255,255,255,0.65), 0 0 1.5px rgba(0,0,0,0.25);
+    color: #1e293b; 
+    opacity: 0.85; 
+    font-weight: 500;
+    /* Inset "chiseled" effect with light from top */
+    text-shadow: 
+      /* Inner shadow (top) */
+      0 1px 0 rgba(255,255,255,0.8),
+      /* Inner shadow (left) */
+      1px 0 0 rgba(255,255,255,0.6),
+      /* Outer shadow for depth */
+      0 -1px 2px rgba(0,0,0,0.3),
+      /* Subtle ambient shadow */
+      0 0 3px rgba(0,0,0,0.2);
   }
 
   /* Progress tracker dynamic classes */
@@ -279,8 +307,37 @@ body {
     -webkit-text-fill-color: transparent;
   }
 
-  /* Cross-browser select normalization */
-  .select-reset { -webkit-appearance: none; appearance: none; background-image: none; line-height: 1.25; font-family: var(--ui-font) !important; }
-  .select-reset:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-start) inset; }
-  .select-reset option { font-family: var(--ui-font) !important; font-size: 0.75rem; }
+  /* Cross-browser select normalization with enhanced option styling */
+  .select-reset { 
+    -webkit-appearance: none; 
+    appearance: none; 
+    background-image: none; 
+    line-height: 1.25; 
+    font-family: var(--ui-font) !important;
+  }
+  .select-reset:focus { 
+    outline: none; 
+    box-shadow: 0 0 0 2px var(--primary-start) inset; 
+  }
+  .select-reset option { 
+    font-family: var(--ui-font) !important; 
+    font-size: 0.875rem; 
+    font-weight: 500;
+    color: #374151;
+    background-color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 2px 0;
+    /* Enhanced for Safari/WebKit */
+    -webkit-font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  /* Safari-specific option styling */
+  @supports (-webkit-appearance: none) {
+    .select-reset option {
+      background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+      text-transform: capitalize;
+      letter-spacing: 0.025em;
+    }
+  }
 }

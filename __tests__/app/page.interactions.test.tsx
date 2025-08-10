@@ -34,8 +34,8 @@ describe('Home Page interactions', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
   render(<ThemeProvider><Home /></ThemeProvider>)
     const select = screen.getByLabelText(/accent color/i)
-    fireEvent.change(select, { target: { value: 'amber' } })
-    expect(document.documentElement.dataset.accent).toBe('amber')
+    fireEvent.change(select, { target: { value: 'golden' } })
+    expect(document.documentElement.dataset.accent).toBe('golden')
   })
 
   it('reset welcome button clears dismissal flag', () => {
