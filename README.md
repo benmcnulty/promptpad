@@ -241,7 +241,23 @@ promptpad/
 
 ---
 
-## 📚 API Reference
+## 📚 Documentation
+
+### 📖 Developer Guide
+
+For comprehensive technical documentation covering all software engineering techniques and patterns:
+
+**→ [Developer Guide](./docs/developer-guide/README.md)** - *Complete technical reference*
+
+#### Key Documentation Sections
+
+- **[LLM Processes](./docs/developer-guide/llm-processes.md)** - *Detailed Refine/Reinforce workflow and optimization*
+- **[Architecture](./docs/developer-guide/architecture.md)** - *React patterns, hooks, and component design*
+- **[Testing Strategy](./docs/developer-guide/testing.md)** - *Comprehensive testing with 96%+ coverage*
+- **[Performance](./docs/developer-guide/performance.md)** - *Caching, optimization, and monitoring*
+- **[Error Handling](./docs/developer-guide/error-handling.md)** - *Resilience patterns and graceful degradation*
+
+### 📋 API Reference
 
 ### Core Endpoints
 

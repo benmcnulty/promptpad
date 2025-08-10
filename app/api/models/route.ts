@@ -34,7 +34,12 @@ export async function GET() {
 
     return NextResponse.json(normalized)
   } catch (error) {
-    console.error('Failed to list models:', error)
+    // Structured error logging for developers
+    console.groupCollapsed(`🚨 Models API error`)
+    console.error(`Ollama base URL: ${process.env.OLLAMA_BASE_URL || 'http://localhost:11434'}`)
+    console.error(`Error type: ${error instanceof OllamaError ? 'OllamaError' : error instanceof Error ? error.constructor.name : typeof error}`)
+    console.error(`Details:`, error)
+    console.groupEnd()
 
     // On failure, still return a valid array with default entry, set status for consumers
     const status = error instanceof OllamaError ? 503 : 500

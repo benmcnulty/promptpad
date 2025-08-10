@@ -64,7 +64,12 @@ export default function Home() {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      // Structured clipboard error for developers
+      console.groupCollapsed('📋 Clipboard operation failed')
+      console.error(`Text length: ${outputText.length} chars`)
+      console.error(`Browser: ${navigator.userAgent}`)
+      console.error(`Error:`, err)
+      console.groupEnd()
     }
   }, [outputText]); // Include outputText dependency
 

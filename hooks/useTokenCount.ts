@@ -56,7 +56,12 @@ export function useTokenCount(
           setResult(countResult)
           setError(null)
         } catch (err) {
-          console.error('Token counting error:', err)
+          // Structured token counting error for developers
+          console.groupCollapsed('🔢 Token counting error')
+          console.error(`Text length: ${textToCount.length} chars`)
+          console.error(`Service: ${tokenService.getCounterInfo().name} v${tokenService.getCounterInfo().version}`)
+          console.error(`Error:`, err)
+          console.groupEnd()
           setError(err instanceof Error ? err.message : 'Token counting failed')
           setResult(null)
         } finally {
@@ -129,7 +134,13 @@ export function useTokenCountMultiple(
           setResults(countResults)
           setErrors(texts.map(() => null))
         } catch (err) {
-          console.error('Multiple token counting error:', err)
+          // Structured multiple token counting error for developers
+          console.groupCollapsed('🔢 Multiple token counting error')
+          console.error(`Texts count: ${texts.length}`)
+          console.error(`Total chars: ${texts.reduce((sum, t) => sum + t.length, 0)}`)
+          console.error(`Service: ${tokenService.getCounterInfo().name} v${tokenService.getCounterInfo().version}`)
+          console.error(`Error:`, err)
+          console.groupEnd()
           const errorMsg = err instanceof Error ? err.message : 'Token counting failed'
           setErrors(texts.map(() => errorMsg))
           setResults(texts.map(() => null))

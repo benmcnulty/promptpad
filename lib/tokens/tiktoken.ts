@@ -21,7 +21,13 @@ export class TikTokenCounter implements TokenCounter {
         const { get_encoding } = require('@dqbd/tiktoken')
         this.encoder = get_encoding('cl100k_base')
       } catch (error) {
-        console.warn(`tiktoken init failed on server for ${modelName}, falling back:`, error)
+        // Structured TikToken initialization warning for developers
+        console.groupCollapsed('⚠️ TikToken initialization failed')
+        console.warn(`Model: ${modelName}`)
+        console.warn(`Environment: Server-side`)
+        console.warn(`Fallback: Heuristic counting`)
+        console.warn(`Error:`, error)
+        console.groupEnd()
         this.encoder = null
       }
     }
@@ -37,7 +43,13 @@ export class TikTokenCounter implements TokenCounter {
         const tokens = this.encoder.encode(text)
         return tokens.length
       } catch (error) {
-        console.warn('tiktoken count failed, using heuristic:', error)
+        // Structured TikToken counting warning for developers
+        console.groupCollapsed('⚠️ TikToken counting failed')
+        console.warn(`Text length: ${text.length} chars`)
+        console.warn(`Model: ${this.modelName}`)
+        console.warn(`Fallback: Heuristic counting`)
+        console.warn(`Error:`, error)
+        console.groupEnd()
       }
     }
 
@@ -55,7 +67,12 @@ export class TikTokenCounter implements TokenCounter {
       try {
         this.encoder.free()
       } catch (error) {
-        console.warn('Error freeing tiktoken encoder:', error)
+        // Structured TikToken cleanup warning for developers  
+        console.groupCollapsed('⚠️ TikToken encoder cleanup failed')
+        console.warn(`Model: ${this.modelName}`)
+        console.warn(`Impact: Memory leak possible`)
+        console.warn(`Error:`, error)
+        console.groupEnd()
       }
     }
   }

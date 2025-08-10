@@ -17,8 +17,9 @@ interface RefineRequestBody {
  * Response: { output, usage, patch? }
  */
 export async function POST(req: Request) {
+  let body: Partial<RefineRequestBody> | undefined
   try {
-    const body = (await req.json()) as Partial<RefineRequestBody>
+    body = (await req.json()) as Partial<RefineRequestBody>
 
     // Basic contract validation (schema lives in docs/agents/schemas)
     if (!body || (body.mode !== 'refine' && body.mode !== 'reinforce')) {
@@ -72,11 +73,17 @@ export async function POST(req: Request) {
       if (body.mode === 'refine') {
         const input = body.input as string
         const prompt = buildRefinePrompt(input)
-        console.log(`🔄 Refine API: Sending prompt to Ollama (${model})`)
-        console.log(`📝 System prompt:`, prompt)
+        // Browser console logging for developers (separate from debug terminal)
+        const startTime = Date.now()
+        console.group(`🔄 Refine API: ${model} (temp=${temperature})`)
+        console.log(`📝 Input tokens: ~${body.input?.length || 0} chars`)
+        
         const { text, usage } = await ollama.generate(model, prompt, { temperature })
-        console.log(`✅ Refine API: Got response from Ollama (${text.length} chars)`)
-        console.log(`📊 Usage:`, usage)
+        
+        const duration = Date.now() - startTime
+        console.log(`✅ Response: ${text.length} chars in ${duration}ms`)
+        console.log(`📊 Tokens: ${usage.input_tokens} → ${usage.output_tokens} (ratio: ${(usage.output_tokens / usage.input_tokens).toFixed(2)}x)`)
+        console.groupEnd()
         
         // Clean up any unwanted prefixes the model might add
         const cleanedText = text
@@ -91,10 +98,17 @@ export async function POST(req: Request) {
       } else {
         const draft = body.draft as string
         const prompt = buildReinforcePrompt(draft)
-        console.log(`🔄 Reinforce API: Sending prompt to Ollama (${model})`)
-        console.log(`📝 System prompt:`, prompt)
+        // Browser console logging for developers (separate from debug terminal)
+        const startTime = Date.now()
+        console.group(`🔄 Reinforce API: ${model} (temp=${temperature})`)
+        console.log(`📝 Draft tokens: ~${body.draft?.length || 0} chars`)
+        
         const { text, usage } = await ollama.generate(model, prompt, { temperature })
-        console.log(`✅ Reinforce API: Got response from Ollama (${text.length} chars)`)
+        
+        const duration = Date.now() - startTime
+        console.log(`✅ Response: ${text.length} chars in ${duration}ms`)
+        console.log(`📊 Tokens: ${usage.input_tokens} → ${usage.output_tokens} (ratio: ${(usage.output_tokens / usage.input_tokens).toFixed(2)}x)`)
+        console.groupEnd()
         
         // Clean up any unwanted prefixes the model might add
         const cleanedText = text
@@ -110,11 +124,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ output: cleanedText, usage, patch, systemPrompt: prompt })
       }
     } catch (err) {
-      console.error(`💥 Ollama generation failed:`, err)
+      // Structured error logging for developers
+      console.groupCollapsed(`💥 Ollama generation failed`)
+      console.error(`Model: ${model}, Mode: ${body.mode}`)
+      console.error(`Error:`, err)
+      console.groupEnd()
+      
       // If Ollama is unavailable and we're in development, return deterministic fallback
       const isDev = process.env.NODE_ENV !== 'production'
       if (isDev) {
-        console.log(`⚠️ Using development fallback (Ollama unavailable)`)
+        console.warn(`⚠️ Using development fallback (Ollama unavailable)`)
         if (body.mode === 'refine') {
           const input = body.input as string
           const prompt = buildRefinePrompt(input)
@@ -143,7 +162,15 @@ export async function POST(req: Request) {
       throw err
     }
   } catch (error) {
-    console.error('Refine endpoint error:', error)
+    // High-level error logging for developers
+    console.groupCollapsed(`🚨 Refine endpoint error`)
+    const mode = body?.mode ?? 'unknown'
+    const model = body?.model ?? 'unknown'
+    console.error(`Request: ${mode} mode with model ${model}`)
+    console.error(`Error type: ${error instanceof OllamaError ? 'OllamaError' : 'UnknownError'}`)
+    console.error(`Details:`, error)
+    console.groupEnd()
+    
     const status = error instanceof OllamaError ? 503 : 500
     return NextResponse.json({ error: 'Refine service error' }, { status })
   }

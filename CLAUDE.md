@@ -8,6 +8,17 @@ Promptpad is a **fully functional** local-first prompt drafting tool built with 
 
 **Status**: ✅ **PRODUCTION READY** - Fully implemented with comprehensive testing, responsive design, loading animations, debugging tools, and optimized prompting.
 
+## 📚 Developer Documentation
+
+**→ For comprehensive technical details, see [Developer Guide](docs/developer-guide/README.md)**
+
+Key documentation for understanding the codebase:
+- **[LLM Processes](docs/developer-guide/llm-processes.md)** - Complete technical breakdown of Refine/Reinforce workflows
+- **[Architecture](docs/developer-guide/architecture.md)** - React patterns, custom hooks, and design patterns
+- **[Testing Strategy](docs/developer-guide/testing.md)** - 108+ tests with 96%+ coverage patterns
+- **[Performance](docs/developer-guide/performance.md)** - Caching, optimization, and monitoring strategies
+- **[Error Handling](docs/developer-guide/error-handling.md)** - Resilience patterns and graceful degradation
+
 ## Invariants & Boundaries
 - Local‑first via Ollama; default `gpt-oss:20b`; temperature ~0.2 (≤0.3 unless justified).
 - Ollama timeout: 120 seconds (increased from 30s to support large models like gpt-oss:20b).

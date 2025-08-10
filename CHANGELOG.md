@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Added
+- Promptpad CLI with refine/reinforce parity (bin: `promptpad`, docs: `docs/CLI.md`)
+  - Global options: `--model`, `--temperature` (≤0.3 clamp), `--timeout`, `--verbose`
+  - Commands: `refine <input>`, `reinforce <draft>` with optional `--output` and `--copy`
+  - Uses shared Ollama client and identical system prompts for consistent outputs
+  - Cross-platform clipboard support (macOS, Linux, Windows)
+  - Entry point at `bin/promptpad.cjs` using `tsx` for TS ESM execution
 - Light/Dark mode toggle with system preference default and persistence
 - Dynamic accent color system with selectable hues (emerald, blue, cyan, amber, rose)
 - Accent dropdown in StatusBar beside theme toggle
@@ -48,6 +54,8 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 - Comprehensive development coordination system for maintaining system invariants
 
 ### Changed
+- Strengthened `/api/refine` error logging; fixed catch-scope reference for robust logging when JSON parsing fails
+- Completed reinforce prompt builder to match refine/reinforce contract and guidance
 - Align agent guidance with AIDEVOPS: updated `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`; added devlog scaffold.
 - Harmonized core library coverage targets to ≥80% across Test Strategy to match invariants
 - Align GET /api/models response to array shape per `api-contract.schema.json`
