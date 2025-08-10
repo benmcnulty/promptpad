@@ -44,13 +44,16 @@ export async function POST(req: Request) {
     if (process.env.OLLAMA_MOCK === '1') {
       if (body.mode === 'refine') {
         const input = body.input as string
+        const prompt = buildRefinePrompt(input)
         const output = `Refined Prompt for: ${input}`
         return NextResponse.json({
           output,
           usage: { input_tokens: input.length, output_tokens: output.length },
+          systemPrompt: prompt,
         })
       } else {
         const draft = body.draft as string
+        const prompt = buildReinforcePrompt(draft)
         const output = `Reinforced Draft: ${draft}`
         return NextResponse.json({
           output,
@@ -59,6 +62,7 @@ export async function POST(req: Request) {
           patch: [
             { op: 'replace', from: [0, draft.length], to: output },
           ],
+          systemPrompt: prompt,
         })
       }
     }

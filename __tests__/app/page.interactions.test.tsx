@@ -25,6 +25,8 @@ describe('Home Page interactions', () => {
   })
 
   it('toggles debug panel via status bar', async () => {
+    // Set localStorage to skip welcome modal so status bar is accessible
+    localStorage.setItem('promptpad-welcome-dismissed', 'true')
     render(<Home />)
     const debugButton = await screen.findByRole('button', { name: /debug/i })
     fireEvent.click(debugButton)

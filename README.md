@@ -1,147 +1,257 @@
-# Promptpad
+# Promptpad ✨
 
-> TL;DR: A **minimal drafting board** for prompts. Paste a rough instruction → Promptpad expands it into a clear, copy‑ready prompt. You can then **send the edited draft back** through the local model for a *reinforcement pass* that tightens coordination among goals, constraints, style, and variables. Local‑first via **Ollama** (optimized for **`gpt-oss:20b`**), with **live token counts**, **diff review**, and **undo/redo** so you never lose work.
+> **Production Ready** local-first prompt drafting tool that transforms terse instructions into copy-ready prompts via Ollama.
 
----
-
-## What it does (straight line)
-1. **Type** a short instruction on the left.
-2. **Pick a model** from your local Ollama list (defaults to **`gpt-oss:20b`**).
-3. **Refine** → Promptpad expands your instruction into a single, structured, **copy‑ready** prompt.
-4. **Edit** the output freely.
-5. **Reinforce** → sends your *current edited draft* back to the model to tighten coordination (nuanced goals, success criteria, constraints, tone, variables). The result comes back as a **diff** you can apply or undo.
-6. **Copy** the final text into any LLM/chat client.
-
-One screen. Minimal controls. No accounts. No cloud by default.
+**Built with**: Next.js 15.4.6 + TypeScript + Tailwind CSS + Ollama  
+**Status**: ✅ Fully functional with comprehensive testing and modern UX  
+**Default Model**: `gpt-oss:20b` (120s timeout for large model support)
 
 ---
 
-## MVP Features
-- **Drafting board UI**: input (left) → refined output (right)
-- **Model select** (Ollama) with default **`gpt-oss:20b`**
-- **Live token counts** for input and output (approximate; pluggable tokenizers)
-- **Refine** (first pass) and **Reinforce** (send your edited draft back)
-- **Diff review + Apply/Undo** for LLM‑proposed changes
-- **Undo/Redo history stack** for *all* changes (user edits + LLM diffs), persisted to local storage
-- **One‑click Copy**
+## 🚀 Quick Start
 
-> Deeper agent guidance will live in **AGENTS.md**, **Claude.md**, and **.github/copilot-instructions.md** later. This README focuses on the end‑user workflow.
+```bash
+# Prerequisites: Ollama with model installed
+ollama pull gpt-oss:20b
 
----
-
-## Tech Stack
-- **Next.js** (App Router) + **TypeScript**
-- **Tailwind CSS** for fast, consistent styling
-- **Ollama** for local inference (optimized for **`gpt-oss:20b`**)
-- **Local storage only** for history; no server database in the MVP
+# Install and run
+pnpm install
+pnpm dev
+# → http://localhost:3000
+```
 
 ---
 
-## Architecture (minimal, clear)
+## ⚡ How It Works
+
+1. **Enter** a brief instruction (left panel)
+2. **Refine** → AI expands it into a detailed, actionable prompt
+3. **Edit** the output freely with real-time token counting  
+4. **Reinforce** → AI optimizes your edited draft for clarity and effectiveness
+5. **Copy** with one-click clipboard integration
+
+**Two-pass workflow**: Refine (expand) → Edit → Reinforce (optimize) → Copy
+
+---
+
+## ✨ Production Features
+
+### Core Functionality
+- ✅ **Refine**: Expands terse input into comprehensive prompts with specific constraints
+- ✅ **Reinforce**: Significantly improves existing prompts for precision and clarity  
+- ✅ **Copy to Clipboard**: One-click copying with visual feedback
+- ✅ **Real-time Token Counting**: TikToken with graceful fallbacks
+
+### UI/UX Excellence  
+- ✅ **Fully Responsive**: Works perfectly on all screen sizes
+- ✅ **Loading Animations**: Thematic gradient spinners during AI processing
+- ✅ **Welcome Modal**: First-run experience with setup instructions
+- ✅ **Debug Terminal**: Full request/response logging with collapsible panel
+- ✅ **Green/Blue Gradient Design**: Custom design system with glass morphism
+
+### Developer Experience
+- ✅ **Comprehensive Testing**: 110+ tests with high coverage
+- ✅ **TypeScript**: Full type safety throughout
+- ✅ **Error Handling**: Graceful fallbacks and user feedback
+- ✅ **Git Integration**: Dynamic commit display
+- ✅ **Enhanced Logging**: Detailed API operation tracking
+
+---
+
+## 🏗️ Architecture
+
 ```
 app/
-  page.tsx                # drafting board (input ↔ output)
+  page.tsx                # ✅ Complete responsive UI with loading states
+  globals.css             # ✅ Green/blue gradient design system
   api/
-    models/route.ts       # GET → list local Ollama models
-    refine/route.ts       # POST → refine or reinforce via Ollama
+    models/route.ts       # ✅ Lists Ollama models with health checking
+    refine/route.ts       # ✅ Refine/reinforce with 120s timeout + cleanup
+    git-info/route.ts     # ✅ Dynamic git commit info
+components/
+  ProgressTracker.tsx     # ✅ Animated 5-step progress indicator
+  StatusBar.tsx           # ✅ Git SHA, model status, debug toggle
+  TokenCounter.tsx        # ✅ Real-time token counting with TikToken
 lib/
-  ollama.ts               # adapter (list, generate)
-  tokens/
-    index.ts              # pluggable token counters
-    tiktoken.ts           # default approx. counter (@dqbd/tiktoken)
-  history.ts              # undo/redo stack + localStorage persistence
-  diff.ts                 # minimal text diff/patch helpers
-styles/                   # Tailwind
+  ollama.ts              # ✅ Ollama client with error handling & timeouts
+  tokens/                # ✅ Pluggable token counting system
+  history.ts             # ✅ Undo/redo + localStorage persistence
+  diff.ts                # ✅ Text diff/patch utilities
+hooks/
+  useRefine.ts           # ✅ State management for operations
+  useTokenCount.ts       # ✅ Real-time token counting
+__tests__/               # ✅ 110+ tests with comprehensive coverage
 ```
-
-**Token counting**
-- Default: `@dqbd/tiktoken` (fast, browser/edge friendly). It’s an **approximation** for open‑models; that’s fine for UX.
-- Design is **pluggable** so model‑specific tokenizers can be swapped in.
 
 ---
 
-## Quickstart
+## 🧪 Testing & Development
 
-### Prereqs
-- Node.js ≥ 20
-- **Ollama** installed and running (https://ollama.com)
-- Pull the primary model:
-  ```bash
-  ollama pull gpt-oss:20b
-  ```
-  Optionally pull extras:
-  ```bash
-  ollama pull llama3.2
-  ollama pull gemma3
-  ollama pull qwen3
-  ```
-
-### Install & Run (after scaffold)
+### Running Tests
 ```bash
-git clone https://github.com/benmcnulty/promptpad
-cd promptpad
-pnpm install    # or npm/yarn
-pnpm dev        # http://localhost:3000
+pnpm test                # Run all tests
+pnpm test:coverage       # Run with coverage report
+pnpm test:watch          # Watch mode for development
 ```
+
+### Development Commands
+```bash
+pnpm dev                 # Start development server
+pnpm build               # Build for production  
+pnpm start               # Start production server
+pnpm lint                # Run ESLint
+pnpm typecheck           # TypeScript checking
+```
+
+### Test Coverage
+- **110+ Tests** covering all functionality
+- **API Tests**: All endpoints with validation and error handling
+- **Component Tests**: UI components with user interactions
+- **Integration Tests**: Full user workflows
+- **Feature Tests**: New enhancements (copy, loading, debug, etc.)
 
 ---
 
-## API Sketch
+## 🔧 API Reference
 
 ### GET /api/models
-Lists local models from Ollama (default highlighted is `gpt-oss:20b`).
+Lists available Ollama models with health checking.
 ```json
-[
-  { "name": "gpt-oss:20b", "family": "gpt-oss", "parameters": "20b" },
-  { "name": "llama3.1",    "family": "llama",    "parameters": "8b" }
-]
+{ "models": [{"name": "gpt-oss:20b", "size": 13780173839, ...}] }
+```
+
+### GET /api/git-info  
+Returns current git commit information.
+```json
+{ "sha": "abc1234", "branch": "main", "timestamp": "2025-01-10T..." }
 ```
 
 ### POST /api/refine
-Handles both **Refine** and **Reinforce** (controlled by `mode`).
+Main refine/reinforce endpoint with enhanced response format.
 
-**Body**
+**Request:**
 ```json
 {
-  "mode": "refine", // or "reinforce"
-  "input": "summarize this article for policy analysts",
-  "draft": "<optional current edited draft when mode=reinforce>",
+  "mode": "refine" | "reinforce",
+  "input": "Brief instruction",     // for refine mode
+  "draft": "Existing prompt",       // for reinforce mode  
   "model": "gpt-oss:20b",
   "temperature": 0.2
 }
 ```
-**Response**
+
+**Response:**
 ```json
 {
-  "output": "<expanded or reinforced copy‑ready prompt>",
-  "usage": { "input_tokens": 123, "output_tokens": 256 },
-  "patch": [
-    { "op": "replace", "from": [100,120], "to": "new text" }
-  ]
+  "output": "Detailed, actionable prompt...",
+  "usage": { "input_tokens": 42, "output_tokens": 187 },
+  "patch": [{"op": "replace", "from": [0, 58], "to": "improved text"}],
+  "systemPrompt": "You are Promptpad...",
+  "fallbackUsed": false
 }
 ```
-> The `patch` is a compact text‑range operation list so the UI can show a diff, apply it, and push an entry onto the undo/redo stack.
 
 ---
 
-## UX Notes
-- **Layout**: left (input + token count), right (output + token count)
-- **Controls**: model dropdown (default `gpt-oss:20b`), **Refine**, **Reinforce**, **Undo**, **Redo**, **Copy**
-- **Diffs**: reinforcement returns a diff; user can apply or discard
-- **History**: every mutation (typing or applied diff) pushes to the local stack; survives reload via localStorage
-- **Accessibility**: semantic controls, focus rings, readable defaults
+## ⚙️ Configuration
+
+### Ollama Settings
+- **Default Model**: `gpt-oss:20b`  
+- **Timeout**: 120 seconds (for large model support)
+- **Base URL**: `http://localhost:11434`
+- **Temperature**: Clamped to ≤0.3 for consistent results
+
+### Environment Variables
+```bash
+OLLAMA_BASE_URL=http://localhost:11434    # Custom Ollama endpoint
+OLLAMA_TIMEOUT=120000                     # Timeout in milliseconds  
+OLLAMA_MOCK=1                            # Use mock responses for testing
+```
 
 ---
 
-## Roadmap (scope‑disciplined)
-- [ ] Agent guidance docs (AGENTS.md, Claude.md, copilot‑instructions.md)
-- [ ] Scaffold Next.js app (App Router, TS, Tailwind)
-- [ ] Ollama adapter (list, generate) tuned for **`gpt-oss:20b`**
-- [ ] Token counter (tiktoken approx.)
-- [ ] Undo/redo history + localStorage persistence
-- [ ] Diff UI for reinforcement pass
+## 🎨 Design System
+
+### Color Palette
+- **Primary Gradient**: Emerald-500 → Blue-500  
+- **Secondary Gradient**: Cyan-500 → Violet-500
+- **Glass Morphism**: Semi-transparent backgrounds with backdrop blur
+- **Focus States**: Emerald/blue gradient focus rings
+
+### Responsive Breakpoints
+- **Mobile First**: Base styles for mobile
+- **Tablet**: `sm:` (640px+)  
+- **Desktop**: `lg:` (1024px+)
+- **Wide**: `xl:` (1280px+)
 
 ---
 
-## License
-MIT © Ben McNulty
+## 🚀 Recent Enhancements (2025)
+
+### Major UI/UX Updates
+- **🎨 Complete Visual Redesign**: Green/blue gradient system with glass morphism
+- **📱 Responsive Layout Fix**: Now properly fills screen at all widths
+- **🔄 Loading Animations**: Thematic gradient spinners with interaction blocking
+- **📋 Copy to Clipboard**: One-click copying with visual feedback
+
+### Technical Improvements  
+- **⏱️ Ollama Timeout Fix**: Increased to 120s for large model support (gpt-oss:20b)
+- **🧹 Response Cleanup**: Automatic removal of unwanted AI prefixes/meta-text
+- **🔍 Enhanced Prompting**: Eliminated technical parameters in user-facing output
+- **💪 Better Reinforce**: Now makes significant improvements vs. minimal changes
+
+### Developer Experience
+- **🖥️ Debug Terminal**: Full request/response logging with collapsible interface
+- **👋 Welcome Modal**: First-run experience with multiple dismiss options
+- **📊 Git Integration**: Dynamic commit SHA display
+- **🧪 Test Improvements**: Updated for new UI enhancements, added feature coverage
+
+---
+
+## 📚 Documentation
+
+- **CLAUDE.md**: Comprehensive guidance for AI development agents
+- **docs/**: Detailed architecture, testing strategy, and development guides  
+- **__tests__/**: Extensive test suite with real functionality testing
+- **Type definitions**: Full TypeScript coverage for all APIs and components
+
+---
+
+## 🤝 Contributing
+
+1. **Fork & Clone** the repository
+2. **Install** dependencies: `pnpm install`
+3. **Run tests** to ensure everything works: `pnpm test`
+4. **Start development** server: `pnpm dev`
+5. **Make changes** with comprehensive tests
+6. **Run validation**: `pnpm typecheck && pnpm lint && pnpm test`
+7. **Submit PR** with detailed description
+
+### Code Standards
+- **TypeScript**: All code must be properly typed
+- **Testing**: New features require comprehensive test coverage
+- **Accessibility**: Follow WCAG guidelines for UI components
+- **Performance**: Optimize for fast loading and smooth interactions
+
+---
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with Next.js, Tailwind CSS, and the Ollama ecosystem
+- Comprehensive testing with Jest and Testing Library
+- Design inspired by modern gradient and glass morphism trends
+- Token counting powered by TikToken with graceful fallbacks
+
+---
+
+**Ready to transform your rough ideas into polished prompts?** 🚀
+
+```bash
+ollama pull gpt-oss:20b && pnpm install && pnpm dev
+```
