@@ -76,6 +76,13 @@ describe('TikTokenCounter', () => {
       
       expect(result).toBeGreaterThanOrEqual(0)
     })
+
+    it('handles encoder throwing during encode (fallback warning path)', () => {
+      // @ts-ignore force inject failing encoder to trigger warning path
+      counter.encoder = { encode: () => { throw new Error('encode fail') } }
+      const result = counter.count('some text to count')
+      expect(result).toBeGreaterThan(0)
+    })
   })
 
   describe('properties', () => {
@@ -101,6 +108,13 @@ describe('TikTokenCounter', () => {
       
       gptCounter.free()
       ollamaCounter.free()
+    })
+
+    it('free() handles encoder.free throwing', () => {
+      const c = new TikTokenCounter('x')
+      // @ts-ignore inject throwing free()
+      c.encoder = { free: () => { throw new Error('free fail') } }
+      c.free() // should not throw
     })
   })
 })
