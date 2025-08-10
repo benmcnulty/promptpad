@@ -128,14 +128,22 @@ export class OllamaClient {
         },
       }
 
+      // Use a soft timeout (warning only) instead of aborting the request so slow generations can complete
+      const controller = new AbortController()
+      const started = Date.now()
+      const softTimer = setTimeout(() => {
+        const elapsed = Math.round((Date.now() - started) / 1000)
+        console.warn(`⚠️ Ollama generation exceeding ${Math.round(this.timeout/1000)}s (elapsed ${elapsed}s) – still waiting...`)
+      }, this.timeout)
       const response = await fetch(`${this.baseUrl}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(this.timeout),
-      })
+        // No abort signal: allow long-running generations
+        signal: controller.signal,
+      }).finally(() => clearTimeout(softTimer))
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error')

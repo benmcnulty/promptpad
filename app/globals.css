@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --ui-font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   /* Dynamic accent (default emerald) */
   --accent-hue-emerald-start: #10b981; /* emerald-500 */
   --accent-hue-emerald-end: #059669;   /* emerald-600 */
@@ -216,6 +217,46 @@ body {
     background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
   }
 
+  /* New enhanced loading animation */
+  @keyframes ring-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes orbit {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+  }
+  @keyframes pulse-core {
+    0%,100% { transform: scale(0.9); opacity: 0.9; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+  .loading-enhanced-container { background: linear-gradient(135deg, var(--secondary-start) 10%, var(--secondary-end) 90%); border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25),0 8px 10px -6px rgba(0,0,0,0.2); }
+  .loading-stage { position: relative; width: 140px; height: 140px; }
+  .loading-ring { position: absolute; inset: 0; border-radius: 50%; border: 4px solid rgba(255,255,255,0.15); }
+  .loading-ring.segmented { border: 4px dashed rgba(255,255,255,0.35); animation: ring-spin 10s linear infinite; }
+  .loading-arc { position: absolute; inset: 8px; border-radius: 50%; border: 6px solid transparent; border-top-color: var(--primary-start); border-right-color: var(--primary-end); animation: ring-spin 2.8s cubic-bezier(.65,.05,.36,1) infinite; }
+  .loading-arc.secondary { inset: 20px; border-width: 5px; border-top-color: var(--secondary-start); border-right-color: var(--secondary-end); animation-direction: reverse; animation-duration: 3.6s; filter: brightness(1.15); }
+  .loading-core-glow { position: absolute; left:50%; top:50%; width:46px; height:46px; transform:translate(-50%,-50%); background: radial-gradient(circle at 30% 30%, var(--primary-start), var(--primary-end)); filter: blur(2px) drop-shadow(0 0 8px rgba(0,0,0,0.25)); border-radius: 18px; animation: pulse-core 2.4s ease-in-out infinite; }
+  .loading-orbits { position:absolute; inset:0; animation: orbit 12s linear infinite; }
+  .loading-orbit-dot { position:absolute; width:12px; height:12px; border-radius:50%; background:linear-gradient(135deg,var(--primary-start),var(--primary-end)); box-shadow:0 0 0 3px rgba(255,255,255,0.35),0 0 12px -2px rgba(0,0,0,0.35); }
+  .loading-orbit-dot.dot1 { top:-3px; left:50%; transform:translateX(-50%); }
+  .loading-orbit-dot.dot2 { bottom:-3px; left:18%; }
+  .loading-orbit-dot.dot3 { right:-3px; top:40%; }
+  .loading-progress-bar { position:relative; height:4px; overflow:hidden; border-radius:2px; background:rgba(255,255,255,0.25); }
+  .loading-progress-bar:before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,var(--primary-start),var(--primary-end)); animation: progressSlide 2.2s ease-in-out infinite; }
+  @keyframes progressSlide { 0%{ transform:translateX(-100%);} 50%{ transform:translateX(0);} 100%{ transform:translateX(100%);} }
+  .loading-text-strong { 
+    background: linear-gradient(90deg, var(--primary-start), var(--secondary-end)); 
+    -webkit-background-clip:text; background-clip:text; 
+    color:transparent; font-weight:600; letter-spacing:.5px; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.55), 0 0 4px rgba(255,255,255,0.25);
+    -webkit-text-stroke: 0.5px rgba(255,255,255,0.35); /* Safari legibility */
+  }
+  .loading-subtle { 
+    color:#0f172a; opacity:.78; font-weight:500; 
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6), 0 0 2px rgba(0,0,0,0.35);
+  }
+
   /* Progress tracker dynamic classes */
   .progress-step-active { border: 2px solid var(--primary-start); color: var(--primary-end); background: #fff; }
   .progress-step-connection-active { background: var(--primary-start); opacity: 0.6; }
@@ -237,7 +278,7 @@ body {
   }
 
   /* Cross-browser select normalization */
-  .select-reset { -webkit-appearance: none; appearance: none; background-image: none; font-family: inherit; line-height: 1.25; }
+  .select-reset { -webkit-appearance: none; appearance: none; background-image: none; line-height: 1.25; font-family: var(--ui-font) !important; }
   .select-reset:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-start) inset; }
-  .select-reset option { font-family: inherit; font-size: 0.75rem; }
+  .select-reset option { font-family: var(--ui-font) !important; font-size: 0.75rem; }
 }

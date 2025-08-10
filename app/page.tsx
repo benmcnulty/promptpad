@@ -83,7 +83,11 @@ export default function Home() {
     );
     addDebugLog("request", requestPayload);
     try {
+      const warnTimer = setTimeout(() => {
+        addDebugLog("system", "⏳ Model still processing... continuing to wait (no timeout abort)");
+      }, 120000);
       const res = await run("refine", inputText);
+      clearTimeout(warnTimer);
       addDebugLog("response", res);
       if (res?.systemPrompt)
         addDebugLog("system", `System Prompt Used:\n${res.systemPrompt}`);
@@ -109,9 +113,13 @@ export default function Home() {
   }, [run, inputText, outputText, addDebugLog]);
 
   const onReinforce = useCallback(async () => {
+    const warnTimer = setTimeout(() => {
+      addDebugLog("system", "⏳ Model still processing reinforce request... continuing to wait");
+    }, 120000);
     const res = await run("reinforce", outputText);
+    clearTimeout(warnTimer);
     if (res && res.output) setOutputText(res.output);
-  }, [run, outputText]);
+  }, [run, outputText, addDebugLog]);
 
   return (
     <div className="h-screen flex flex-col gradient-surface overflow-hidden">
@@ -224,33 +232,26 @@ export default function Home() {
             
             {/* Loading Overlay */}
             {state.loading && (
-              <div className="absolute inset-4 backdrop-blur-sm border-2 rounded-lg flex items-center justify-center loading-sheen">
-                <div className="flex flex-col items-center space-y-4">
-                  {/* Animated Gradient Spinner */}
-                  <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 border-4 border-transparent rounded-full animate-spin loading-spinner-outer"></div>
-                    <div className="absolute inset-2 border-4 border-transparent rounded-full animate-spin animate-reverse animate-spin-delay loading-spinner-inner"></div>
-                    <div className="absolute inset-4 w-4 h-4 rounded-full animate-pulse loading-core"></div>
-                  </div>
-                  
-                  {/* Loading Text */}
-                  <div className="text-center">
-                    <div className="text-lg font-semibold mb-1 bg-clip-text text-transparent loading-title-gradient">
-                      Refining Prompt...
+              <div className="absolute inset-4 rounded-lg flex items-center justify-center loading-enhanced-container backdrop-blur-sm">
+                <div className="flex flex-col items-center space-y-5">
+                  <div className="loading-stage">
+                    <div className="loading-ring" />
+                    <div className="loading-ring segmented" />
+                    <div className="loading-arc" />
+                    <div className="loading-arc secondary" />
+                    <div className="loading-orbits">
+                      <div className="loading-orbit-dot dot1" />
+                      <div className="loading-orbit-dot dot2" />
+                      <div className="loading-orbit-dot dot3" />
                     </div>
-                    <div className="text-sm text-slate-600 animate-pulse">
-                      AI is crafting your structured prompt
-                    </div>
+                    <div className="loading-core-glow" />
                   </div>
-                  
-                  {/* Animated Dots */}
-                  <div className="flex space-x-1">
-                    {[0,1,2].map(i => (
-                      <div
-                        key={i}
-                        className={`w-2 h-2 rounded-full animate-bounce loading-dot-gradient ${i===1 ? 'animate-bounce-delay-1' : ''} ${i===2 ? 'animate-bounce-delay-2' : ''}`}
-                      ></div>
-                    ))}
+                  <div className="w-48">
+                    <div className="loading-progress-bar mb-3" />
+                    <div className="text-center text-sm leading-tight">
+                      <div className="loading-text-strong mb-1">Refining prompt</div>
+                      <div className="loading-subtle">Model is generating – this can take a moment</div>
+                    </div>
                   </div>
                 </div>
               </div>

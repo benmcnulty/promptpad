@@ -50,56 +50,66 @@ export default function ProgressTracker({ steps, className = '', compact = false
 
   return (
     <div className={`space-y-3 ${className}`} aria-label="Refine progress tracker">
-      {/* Progress bar */}
+      {/* Primary progress bar */}
       <div className="flex items-center space-x-2">
         <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
-          <div 
-            className={`h-full transition-all duration-500 ease-out ${
-              hasError ? 'bg-red-500' : 'gradient-primary'
-            }`}
+          <div
+            className={`h-full transition-all duration-500 ease-out ${hasError ? 'bg-red-500' : 'gradient-primary'}`}
             style={{ width: `${(completedSteps / steps.length) * 100}%` }}
           />
         </div>
-        <span className="text-sm font-semibold text-slate-700 min-w-0">
-          {completedSteps}/{steps.length}
-        </span>
+        <span className="text-sm font-semibold text-slate-700 min-w-0">{completedSteps}/{steps.length}</span>
       </div>
-      
-      {/* Step indicators */}
-      <div className="flex items-center justify-between">
+
+      {/* Icon row with single connector behind */}
+      <div className="relative px-2">
+        <div className="absolute left-6 right-6 top-1/2 h-0.5 bg-slate-200 -translate-y-1/2" />
+        <div
+          className={`absolute left-6 top-1/2 h-0.5 -translate-y-1/2 transition-all duration-500 ${hasError ? 'bg-red-500' : 'gradient-primary'}`}
+          style={{ width: `${Math.max(0, (completedSteps - 1) / Math.max(1, steps.length - 1) * 100)}%` }}
+        />
+        <div className="flex justify-between items-center">
+          {steps.map((step, idx) => {
+            const isActive = step.status === 'in_progress'
+            const isCompleted = step.status === 'done'
+            const hasError = step.status === 'error'
+            return (
+              <div key={step.id} className="relative flex items-center justify-center w-8 h-8">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300
+                  ${
+                    isCompleted
+                      ? 'gradient-primary text-white shadow-soft'
+                      : hasError
+                      ? 'bg-red-500 text-white shadow-soft'
+                      : isActive
+                      ? 'progress-step-active shadow-soft animate-pulse-glow'
+                      : 'bg-slate-100 text-slate-400 border border-slate-200'
+                  }
+                `}>
+                  {isCompleted ? (
+                    <CheckIcon className="w-4 h-4" />
+                  ) : hasError ? (
+                    <ExclamationTriangleIcon className="w-4 h-4" />
+                  ) : (
+                    <span className="text-xs font-bold">{idx + 1}</span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Labels row */}
+      <div className="flex justify-between mt-1 px-1">
         {steps.map((step, idx) => {
           const isActive = step.status === 'in_progress'
           const isCompleted = step.status === 'done'
           const hasError = step.status === 'error'
-          const isPending = step.status === 'pending'
-          
           return (
-            <div key={step.id} className="flex flex-col items-center space-y-1 min-w-0 flex-1">
-              {/* Icon */}
-              <div className={`
-                relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300
-                ${
-                  isCompleted
-                    ? 'gradient-primary text-white shadow-soft'
-                    : hasError
-                    ? 'bg-red-500 text-white shadow-soft'
-                    : isActive
-                    ? 'progress-step-active shadow-soft animate-pulse-glow'
-                    : 'bg-slate-100 text-slate-400 border border-slate-200'
-                }
-              `}>
-                {isCompleted ? (
-                  <CheckIcon className="w-4 h-4" />
-                ) : hasError ? (
-                  <ExclamationTriangleIcon className="w-4 h-4" />
-                ) : (
-                  <span className="text-xs font-bold">{idx + 1}</span>
-                )}
-              </div>
-              
-              {/* Label */}
-              <span className={`
-                text-xs text-center font-medium transition-colors duration-200 leading-tight max-w-[6rem] px-1 break-words
+            <span
+              key={step.id}
+              className={`text-[10px] sm:text-xs text-center font-medium leading-snug max-w-[5.5rem] flex-1 mx-0.5 px-1 min-h-[1.5rem] flex items-center justify-center
                 ${
                   isCompleted
                     ? 'progress-step-label-completed'
@@ -109,22 +119,10 @@ export default function ProgressTracker({ steps, className = '', compact = false
                     ? 'progress-step-label-active'
                     : 'progress-step-label-pending'
                 }
-              `}>
-                {step.label}
-              </span>
-              
-              {/* Connection line */}
-              {idx < steps.length - 1 && (
-                <div className={`
-                  absolute top-4 left-1/2 w-full h-0.5 -z-10 transition-colors duration-300
-                  ${
-                    steps[idx + 1].status === 'done' || steps[idx + 1].status === 'in_progress'
-                      ? 'progress-step-connection-active'
-                      : 'progress-step-connection-inactive'
-                  }
-                `} style={{ transform: 'translateX(50%)' }} />
-              )}
-            </div>
+              `}
+            >
+              {step.label}
+            </span>
           )
         })}
       </div>
