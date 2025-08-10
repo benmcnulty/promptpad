@@ -1,105 +1,105 @@
 'use client'
 
-import { useCallback, useMemo, useState, useEffect } from 'react'
-import StatusBar from '@/components/StatusBar'
-import TokenCounter from '@/components/TokenCounter'
-import ProgressTracker from '@/components/ProgressTracker'
-import { useRefine } from '@/hooks/useRefine'
+import { useCallback, useMemo, useState, useEffect } from "react";
+import StatusBar from "@/components/StatusBar";
+import TokenCounter from "@/components/TokenCounter";
+import ProgressTracker from "@/components/ProgressTracker";
+import { useRefine } from "@/hooks/useRefine";
 
 export default function Home() {
-  const [inputText, setInputText] = useState('')
-  const [outputText, setOutputText] = useState('')
-  const [showWelcome, setShowWelcome] = useState(true) 
-  const [dontShowAgain, setDontShowAgain] = useState(false)
-  const [showDebug, setShowDebug] = useState(false)
-  const [debugLogs, setDebugLogs] = useState<Array<{timestamp: string, type: 'request' | 'response' | 'system', content: any}>>([])
-  const { state, statusSummary, run, reset } = useRefine('gpt-oss:20b', 0.2)
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<
+    Array<{ timestamp: string; type: "request" | "response" | "system"; content: any }>
+  >([]);
+  const { state, statusSummary, run, reset } = useRefine("gpt-oss:20b", 0.2);
 
-  const canRefine = useMemo(() => inputText.trim().length > 0 && !state.loading, [inputText, state.loading])
-  const canReinforce = useMemo(() => outputText.trim().length > 0 && !state.loading, [outputText, state.loading])
+  const canRefine = useMemo(
+    () => inputText.trim().length > 0 && !state.loading,
+    [inputText, state.loading]
+  );
+  const canReinforce = useMemo(
+    () => outputText.trim().length > 0 && !state.loading,
+    [outputText, state.loading]
+  );
 
-  // Check localStorage on mount
   useEffect(() => {
-    const dismissed = localStorage.getItem('promptpad-welcome-dismissed')
-    if (dismissed === 'true') {
-      setShowWelcome(false)
-    }
-  }, [])
+    const dismissed = localStorage.getItem("promptpad-welcome-dismissed");
+    if (dismissed === "true") setShowWelcome(false);
+  }, []);
 
-  // Handle dismissing welcome modal
   const dismissWelcome = useCallback(() => {
-    if (dontShowAgain) {
-      localStorage.setItem('promptpad-welcome-dismissed', 'true')
-    }
-    setShowWelcome(false)
-  }, [dontShowAgain])
+    if (dontShowAgain) localStorage.setItem("promptpad-welcome-dismissed", "true");
+    setShowWelcome(false);
+  }, [dontShowAgain]);
 
-  // Debug logging functions
-  const addDebugLog = useCallback((type: 'request' | 'response' | 'system', content: any) => {
-    const timestamp = new Date().toISOString()
-    setDebugLogs(prev => [...prev.slice(-49), { timestamp, type, content }]) // Keep last 50 entries
-  }, [])
+  const addDebugLog = useCallback(
+    (type: "request" | "response" | "system", content: any) => {
+      const timestamp = new Date().toISOString();
+      setDebugLogs((prev) => [...prev.slice(-49), { timestamp, type, content }]);
+    },
+    []
+  );
 
-  const clearDebugLogs = useCallback(() => {
-    setDebugLogs([])
-  }, [])
+  useEffect(() => {
+    if (!showWelcome) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismissWelcome();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showWelcome, dismissWelcome]);
+
+  const clearDebugLogs = useCallback(() => setDebugLogs([]), []);
 
   const onRefine = useCallback(async () => {
-    const requestPayload = { mode: 'refine', input: inputText, model: 'gpt-oss:20b', temperature: 0.2 }
-    addDebugLog('system', `Starting refine operation for: "${inputText.slice(0, 50)}${inputText.length > 50 ? '...' : ''}"`)
-    addDebugLog('request', requestPayload)
-    
-    console.log('🔄 Refine button clicked, inputText:', inputText)
-    console.log('🔄 Current outputText before:', outputText)
+    const requestPayload = {
+      mode: "refine",
+      input: inputText,
+      model: "gpt-oss:20b",
+      temperature: 0.2,
+    };
+    addDebugLog(
+      "system",
+      `Starting refine operation for: "${inputText.slice(0, 50)}${
+        inputText.length > 50 ? "..." : ""
+      }"`
+    );
+    addDebugLog("request", requestPayload);
     try {
-      const res = await run('refine', inputText)
-      
-      addDebugLog('response', res)
-      
-      // Log system prompt if available
-      if (res?.systemPrompt) {
-        addDebugLog('system', `System Prompt Used:\n${res.systemPrompt}`)
-      }
-      
-      // Log if fallback was used
-      if (res?.fallbackUsed) {
-        addDebugLog('system', '⚠️ Using development fallback - Ollama unavailable')
-      }
-      
-      console.log('📤 Refine response:', res)
-      console.log('📤 Response keys:', res ? Object.keys(res) : 'null response')
-      console.log('📤 Response output:', res?.output)
-      console.log('📤 Response output type:', typeof res?.output)
-      console.log('📤 Response output length:', res?.output?.length)
-      
-      if (res && res.output && typeof res.output === 'string' && res.output.trim().length > 0) {
-        console.log('✅ Setting output text:', res.output.slice(0, 100) + '...')
-        addDebugLog('system', `✅ Successfully set output (${res.output.length} chars)`)
-        setOutputText(res.output)
-        console.log('✅ Output text set successfully')
+      const res = await run("refine", inputText);
+      addDebugLog("response", res);
+      if (res?.systemPrompt)
+        addDebugLog("system", `System Prompt Used:\n${res.systemPrompt}`);
+      if (res?.fallbackUsed)
+        addDebugLog("system", "⚠️ Using development fallback - Ollama unavailable");
+      if (
+        res &&
+        res.output &&
+        typeof res.output === "string" &&
+        res.output.trim().length > 0
+      ) {
+        addDebugLog(
+          "system",
+          `✅ Successfully set output (${res.output.length} chars)`
+        );
+        setOutputText(res.output);
       } else {
-        console.log('⚠️ Invalid output in response:', res)
-        addDebugLog('system', `⚠️ Invalid output: ${JSON.stringify(res)}`)
-        if (res && !res.output) {
-          console.log('⚠️ Response exists but output is missing')
-        }
-        if (res && res.output && typeof res.output !== 'string') {
-          console.log('⚠️ Output is not a string:', typeof res.output)
-        }
-        if (res && res.output && res.output.trim().length === 0) {
-          console.log('⚠️ Output is empty string')
-        }
+        addDebugLog("system", `⚠️ Invalid output: ${JSON.stringify(res)}`);
       }
     } catch (error) {
-      console.error('💥 Error in onRefine:', error)
-      addDebugLog('system', `💥 Error: ${error}`)
+      addDebugLog("system", `💥 Error: ${error}`);
     }
-  }, [run, inputText, outputText, addDebugLog])
+  }, [run, inputText, outputText, addDebugLog]);
 
   const onReinforce = useCallback(async () => {
-    const res = await run('reinforce', outputText)
-    if (res && res.output) setOutputText(res.output)
-  }, [run, outputText])
+    const res = await run("reinforce", outputText);
+    if (res && res.output) setOutputText(res.output);
+  }, [run, outputText]);
+
   return (
     <div className="min-h-screen flex flex-col gradient-surface">
       {/* Header */}
@@ -121,7 +121,11 @@ export default function Home() {
           <div className="gradient-primary p-6">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z"
+                  clipRule="evenodd"
+                />
               </svg>
               Input Draft
             </h2>
@@ -129,38 +133,38 @@ export default function Home() {
               Enter your terse instructions to expand into structured prompts
             </div>
           </div>
-          
           <div className="flex-1 p-6">
             <textarea
               className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-emerald-300 placeholder:text-slate-700 text-slate-900"
-              placeholder={`Enter your prompt ideas here...
-
-Example: "Create a marketing email for new product launch"
-
-Press Refine to expand into a structured, copy-ready prompt.`}
+              placeholder={`Enter your prompt ideas here...\n\nExample: "Create a marketing email for new product launch"\n\nPress Refine to expand into a structured, copy-ready prompt.`}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               aria-label="Prompt input area"
             />
           </div>
-
           <div className="p-6 border-t border-white/20 bg-white/40 backdrop-blur-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <TokenCounter text={inputText} className="order-2 sm:order-1" />
-              <button 
+              <button
                 className="order-1 sm:order-2 gradient-primary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center"
                 disabled={!canRefine}
                 aria-label="Refine prompt"
                 onClick={onRefine}
               >
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 8.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 8.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 Refine
               </button>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm">
-              <span className="text-slate-600 font-medium bg-white/60 px-3 py-1 rounded-md backdrop-blur-sm border border-white/40">{statusSummary}</span>
+              <span className="text-slate-600 font-medium bg-white/60 px-3 py-1 rounded-md backdrop-blur-sm border border-white/40">
+                {statusSummary}
+              </span>
               <button
                 className="text-slate-500 hover:text-slate-700 focus-visible font-medium transition-colors duration-200 bg-white/60 hover:bg-white/80 px-3 py-1 rounded-md backdrop-blur-sm border border-white/40"
                 onClick={reset}
@@ -171,13 +175,16 @@ Press Refine to expand into a structured, copy-ready prompt.`}
             </div>
           </div>
         </div>
-
         {/* Right Pane - Output */}
         <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden mt-4 lg:mt-0">
           <div className="gradient-secondary p-6">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L8.107 10.5a.75.75 0 00-1.214 1.061l1.586 2.286a.75.75 0 001.214-.057l3.857-5.657z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L8.107 10.5a.75.75 0 00-1.214 1.061l1.586 2.286a.75.75 0 001.214-.057l3.857-5.657z"
+                  clipRule="evenodd"
+                />
               </svg>
               Refined Output
             </h2>
@@ -185,34 +192,34 @@ Press Refine to expand into a structured, copy-ready prompt.`}
               Your expanded, copy-ready prompt will appear here
             </div>
           </div>
-          
           <div className="flex-1 p-6">
             <textarea
               className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900"
-              placeholder={`Your refined prompt will appear here...
-
-After refining, you can edit the output and use 'Reinforce' to tighten and optimize your changes.`}
+              placeholder={`Your refined prompt will appear here...\n\nAfter refining, you can edit the output and use 'Reinforce' to tighten and optimize your changes.`}
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
               aria-label="Prompt output area"
             />
           </div>
-
           <div className="p-6 border-t border-white/20 bg-white/40 backdrop-blur-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <TokenCounter text={outputText} className="order-2 sm:order-1" />
               <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-2">
-                <button 
+                <button
                   className="px-4 py-2 bg-slate-400 text-white rounded-lg font-medium shadow-soft opacity-50 cursor-not-allowed transition-all duration-200"
                   disabled
                   aria-label="Undo last change"
                 >
                   <svg className="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7.793 2.232a.75.75 0 01-.025 1.06L4.887 6H13.5a7.5 7.5 0 010 15H9a.75.75 0 010-1.5h4.5a6 6 0 000-12H4.887l2.88 2.708a.75.75 0 11-1.035 1.085l-4.25-4a.75.75 0 010-1.085l4.25-4a.75.75 0 011.06.025z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M7.793 2.232a.75.75 0 01-.025 1.06L4.887 6H13.5a7.5 7.5 0 010 15H9a.75.75 0 010-1.5h4.5a6 6 0 000-12H4.887l2.88 2.708a.75.75 0 11-1.035 1.085l-4.25-4a.75.75 0 010-1.085l4.25-4a.75.75 0 011.06.025z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Undo
                 </button>
-                <button 
+                <button
                   className="gradient-secondary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center"
                   disabled={!canReinforce}
                   aria-label="Reinforce edited prompt"
@@ -238,10 +245,22 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
         </div>
       </main>
 
-      {/* Welcome Message for Empty State */}
+      {/* Welcome Modal */}
       {showWelcome && !inputText && !outputText && (
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50 bg-black/20 backdrop-blur-sm">
-          <div className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant pointer-events-auto relative">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) dismissWelcome();
+          }}
+          aria-modal="true"
+          role="dialog"
+          tabIndex={-1}
+        >
+          <div
+            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto"
+            style={{ outline: "none" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Close button */}
             <button
               onClick={dismissWelcome}
@@ -252,7 +271,6 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-
             <div className="mb-6">
               <div className="w-16 h-16 mx-auto gradient-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,9 +278,7 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                 </svg>
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-4">
-              Welcome to Promptpad
-            </h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-4">Welcome to Promptpad</h3>
             <p className="text-slate-700 mb-6 leading-relaxed font-medium">
               Your local-first prompt drafting tool. Enter a brief idea in the left panel and click <span className="font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">Refine</span> to expand it into a structured prompt.
             </p>
@@ -272,7 +288,6 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                 ollama pull gpt-oss:20b
               </code>
             </div>
-
             {/* Don't show again checkbox */}
             <div className="flex items-center justify-center mb-4">
               <label className="flex items-center cursor-pointer">
@@ -282,11 +297,9 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                   onChange={(e) => setDontShowAgain(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-4 h-4 rounded border-2 mr-3 flex items-center justify-center transition-colors duration-200 ${
-                  dontShowAgain 
-                    ? 'bg-emerald-500 border-emerald-500' 
-                    : 'bg-white border-slate-300 hover:border-slate-400'
-                }`}>
+                <div
+                  className={`w-4 h-4 rounded border-2 mr-3 flex items-center justify-center transition-colors duration-200 ${dontShowAgain ? "bg-emerald-500 border-emerald-500" : "bg-white border-slate-300 hover:border-slate-400"}`}
+                >
                   {dontShowAgain && (
                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -296,7 +309,6 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                 <span className="text-sm text-slate-600 font-medium">Don&apos;t show this again</span>
               </label>
             </div>
-
             <button
               onClick={dismissWelcome}
               className="gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold shadow-soft hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus-visible"
@@ -334,11 +346,15 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
               debugLogs.map((log, idx) => (
                 <div key={idx} className="border-l-2 border-gray-700 pl-3">
                   <div className="flex items-center space-x-2 mb-1">
-                    <span className={`px-1 rounded text-xs font-bold ${
-                      log.type === 'request' ? 'bg-blue-700 text-blue-200' :
-                      log.type === 'response' ? 'bg-yellow-700 text-yellow-200' :
-                      'bg-gray-700 text-gray-300'
-                    }`}>
+                    <span
+                      className={`px-1 rounded text-xs font-bold ${
+                        log.type === "request"
+                          ? "bg-blue-700 text-blue-200"
+                          : log.type === "response"
+                          ? "bg-yellow-700 text-yellow-200"
+                          : "bg-gray-700 text-gray-300"
+                      }`}
+                    >
                       {log.type.toUpperCase()}
                     </span>
                     <span className="text-gray-400 text-xs">
@@ -346,7 +362,9 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
                     </span>
                   </div>
                   <div className="text-green-300 whitespace-pre-wrap break-words">
-                    {typeof log.content === 'string' ? log.content : JSON.stringify(log.content, null, 2)}
+                    {typeof log.content === "string"
+                      ? log.content
+                      : JSON.stringify(log.content, null, 2)}
                   </div>
                 </div>
               ))
@@ -356,10 +374,7 @@ After refining, you can edit the output and use 'Reinforce' to tighten and optim
       )}
 
       {/* Status Bar */}
-      <StatusBar 
-        onDebugToggle={setShowDebug}
-        debugOpen={showDebug}
-      />
+      <StatusBar onDebugToggle={setShowDebug} debugOpen={showDebug} />
     </div>
-  )
+  );
 }
