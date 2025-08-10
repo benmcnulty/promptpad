@@ -248,13 +248,15 @@ body {
   .loading-text-strong { 
     background: linear-gradient(90deg, var(--primary-start), var(--secondary-end)); 
     -webkit-background-clip:text; background-clip:text; 
-    color:transparent; font-weight:600; letter-spacing:.5px; 
-    text-shadow: 0 1px 2px rgba(0,0,0,0.55), 0 0 4px rgba(255,255,255,0.25);
-    -webkit-text-stroke: 0.5px rgba(255,255,255,0.35); /* Safari legibility */
+  color:transparent; font-weight:600; letter-spacing:.35px; 
+  /* Subtle depth without heavy embossed look */
+  text-shadow: 0 1px 1.5px rgba(0,0,0,0.35), 0 0 2px rgba(0,0,0,0.25);
+  -webkit-text-stroke: 0.25px rgba(255,255,255,0.25); /* lighter stroke for Safari legibility */
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.15));
   }
   .loading-subtle { 
-    color:#0f172a; opacity:.78; font-weight:500; 
-    text-shadow: 0 1px 2px rgba(255,255,255,0.6), 0 0 2px rgba(0,0,0,0.35);
+  color:#0f172a; opacity:.8; font-weight:500; 
+  text-shadow: 0 1px 1px rgba(255,255,255,0.65), 0 0 1.5px rgba(0,0,0,0.25);
   }
 
   /* Progress tracker dynamic classes */
