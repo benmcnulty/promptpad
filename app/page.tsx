@@ -141,7 +141,7 @@ export default function Home() {
       </header>
 
       {/* Main Content - Split Layout */}
-      <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-4 min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
         {/* Left Pane - Input */}
         <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden min-h-0">
           <div className="gradient-secondary p-4 flex-shrink-0">
@@ -433,7 +433,7 @@ export default function Home() {
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-4">Welcome to Promptpad</h3>
             <p className="text-slate-700 mb-6 leading-relaxed font-medium">
-              Your local-first prompt drafting tool. Enter a brief idea in the left panel and click <span className="font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">Refine</span> to expand it into a structured prompt.
+              Your local-first prompt drafting tool. Enter a brief idea in the left panel and click <span className="font-bold text-gradient">Refine</span> to expand it into a structured prompt.
             </p>
             <div className="text-sm text-slate-800 bg-slate-100/90 backdrop-blur-sm p-4 rounded-xl border border-slate-300/60 shadow-soft mb-6">
               <div className="font-bold mb-2 text-slate-900">Prerequisites:</div>

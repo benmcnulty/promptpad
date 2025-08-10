@@ -84,7 +84,7 @@ export async function POST(req: Request) {
           .replace(/^Prompt:\s*/i, '')
           .replace(/^# Prompt\s*/i, '')
           .replace(/^Here's the (refined|reinforced) prompt:\s*/i, '')
-          .replace(/^"([^"]*)"$/s, '$1') // Remove surrounding quotes
+          .replace(/^"([\s\S]*)"$/, '$1') // Remove surrounding quotes without dotAll flag
           .trim()
         
         return NextResponse.json({ output: cleanedText, usage, systemPrompt: prompt })
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
           .replace(/^Prompt:\s*/i, '')
           .replace(/^# Prompt\s*/i, '')
           .replace(/^Here's (an? )?(enhanced|improved|refined|reinforced) (version of the )?.*?prompt:\s*/i, '')
-          .replace(/^"([^"]*)"$/s, '$1') // Remove surrounding quotes
+          .replace(/^"([\s\S]*)"$/, '$1') // Remove surrounding quotes without dotAll flag
           .replace(/\n\n(I made the following improvements|Let me know if|The improvements include)[\s\S]*$/i, '') // Remove trailing meta-commentary
           .trim()
         
@@ -151,40 +151,37 @@ export async function POST(req: Request) {
 
 function buildRefinePrompt(input: string): string {
   return [
-    'You are Promptpad, a prompt-drafting assistant that expands brief inputs into detailed, actionable prompts.',
+    'You are Promptpad, a prompt-drafting assistant. Expand terse instructions into copy-ready prompts.',
     '',
-    'Task: Transform the INPUT into a comprehensive, copy-ready prompt for an AI system.',
+    'Transform the INPUT into a detailed, actionable prompt that another AI can execute without further clarification.',
     '',
-    'Guidelines:',
-    '- Expand vague requests into specific, actionable instructions',
-    '- Include relevant constraints like word count, format, tone, or style when appropriate',
-    '- Add context variables (e.g., {topic}, {audience}) when helpful',
-    '- Make the prompt clear enough that any AI could execute it well',
-    '- Do NOT include AI technical parameters like temperature, model settings, or system instructions',
-    '- Start directly with the prompt content - no labels, headers, or meta-text',
+    '- Clarify goals and success criteria',
+    '- Add helpful constraints (length, tone, audience, style, format)',
+    '- Structure with bullets or sections for clarity',
+    '- Preserve user intent while eliminating ambiguity',
+    '- Never include AI technical parameters (temperature, system role, model selection)',
     '',
     'INPUT: ' + input,
     '',
-    'Refined prompt:',
+    'Write the refined prompt:',
   ].join('\n')
 }
 
 function buildReinforcePrompt(draft: string): string {
   return [
-    'You are Promptpad, a prompt optimization specialist.',
+    'You are Promptpad, a prompt optimization specialist. Tighten the DRAFT into a more precise, professional prompt.',
     '',
-    'Task: Transform the DRAFT prompt into a more precise, actionable version.',
-    '',
-    'Apply these improvements:',
-    '- Replace vague terms with specific, measurable requirements',
-    '- Add essential constraints for better output quality',  
-    '- Reorganize for logical flow and clarity',
-    '- Remove redundancy and strengthen action words',
-    '- Do NOT include AI parameters like temperature or model settings',
-    '- Do NOT add explanations, commentary, or meta-text',
+    'Requirements:',
+    '- Preserve original intent and useful details; prefer minimal edits',
+    '- Replace vague terms with measurable, verifiable criteria',
+    '- Add only essential constraints (length, tone, style, format, audience)',
+    '- Ensure logical flow; organize with concise sections and bullets as needed',
+    '- Keep variable placeholders (e.g., {audience}) if already present; introduce only when clearly beneficial',
+    '- No AI parameters (temperature, model, system role)',
+    '- No commentary or labels; return only the improved prompt content',
     '',
     'DRAFT: ' + draft,
     '',
-    'OUTPUT: Write only the improved prompt, no explanations or analysis.',
+    'Return only the reinforced prompt content—no headers, no explanations.',
   ].join('\n')
 }

@@ -63,11 +63,20 @@ export default function ProgressTracker({ steps, className = '', compact = false
 
       {/* Icon row with single connector behind */}
       <div className="relative px-2">
-        <div className="absolute left-6 right-6 top-1/2 h-0.5 bg-slate-200 -translate-y-1/2" />
-        <div
-          className={`absolute left-6 top-1/2 h-0.5 -translate-y-1/2 transition-all duration-500 ${hasError ? 'bg-red-500' : 'gradient-primary'}`}
-          style={{ width: `${Math.max(0, (completedSteps - 1) / Math.max(1, steps.length - 1) * 100)}%` }}
-        />
+        {/* Background line between step centers only */}
+        {steps.length > 1 && (
+          <div className="absolute left-6 top-1/2 h-0.5 bg-slate-200 -translate-y-1/2" 
+               style={{ width: `calc(100% - 3rem)` }} />
+        )}
+        {/* Progress line - only spans between completed step connections */}
+        {steps.length > 1 && (
+          <div
+            className={`absolute left-6 top-1/2 h-0.5 -translate-y-1/2 transition-all duration-500 ${hasError ? 'bg-red-500' : 'gradient-primary'}`}
+            style={{ 
+              width: `calc((100% - 3rem) * ${Math.max(0, Math.min(1, (completedSteps - 1) / (steps.length - 1)))})` 
+            }}
+          />
+        )}
         <div className="flex justify-between items-center">
           {steps.map((step, idx) => {
             const isActive = step.status === 'in_progress'
@@ -101,7 +110,7 @@ export default function ProgressTracker({ steps, className = '', compact = false
       </div>
 
       {/* Labels row */}
-      <div className="flex justify-between mt-1 px-1">
+      <div className="flex justify-between mt-1 px-2">
         {steps.map((step, idx) => {
           const isActive = step.status === 'in_progress'
           const isCompleted = step.status === 'done'
@@ -109,12 +118,12 @@ export default function ProgressTracker({ steps, className = '', compact = false
           return (
             <span
               key={step.id}
-              className={`text-[10px] sm:text-xs text-center font-medium leading-snug max-w-[5.5rem] flex-1 mx-0.5 px-1 min-h-[1.5rem] flex items-center justify-center
+              className={`text-[9px] xs:text-[10px] sm:text-xs md:text-sm text-center font-medium leading-snug max-w-[4.5rem] xs:max-w-[5.5rem] sm:max-w-none flex-1 mx-0.5 px-0.5 xs:px-1 min-h-[1.25rem] xs:min-h-[1.5rem] flex items-center justify-center
                 ${
                   isCompleted
                     ? 'progress-step-label-completed'
                     : hasError
-                    ? 'text-red-600'
+                    ? 'text-red-600 label-contrast'
                     : isActive
                     ? 'progress-step-label-active'
                     : 'progress-step-label-pending'
@@ -129,4 +138,3 @@ export default function ProgressTracker({ steps, className = '', compact = false
     </div>
   )
 }
-

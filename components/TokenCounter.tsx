@@ -52,7 +52,7 @@ export default function TokenCounter({
         {showLoader && isLoading ? (
           <span className="animate-pulse text-slate-500 font-medium">⋯</span>
         ) : (
-          <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent font-bold">
+          <span className="text-gradient font-bold">
             {count.toLocaleString()}
           </span>
         )}
@@ -84,7 +84,7 @@ export function CompactTokenCounter({
 
   return (
     <span 
-      className={`font-mono text-xs bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent font-semibold ${className}`}
+      className={`font-mono text-xs text-gradient font-semibold ${className}`}
       aria-label={`${count} tokens`}
     >
       {isLoading ? '⋯' : count.toLocaleString()}

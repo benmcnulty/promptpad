@@ -291,9 +291,25 @@ body {
   .progress-step-active { border: 2px solid var(--primary-start); color: var(--primary-end); background: #fff; }
   .progress-step-connection-active { background: var(--primary-start); opacity: 0.6; }
   .progress-step-connection-inactive { background: #e2e8f0; }
-  .progress-step-label-completed { color: var(--primary-start); }
-  .progress-step-label-active { color: var(--text-primary); font-weight: 600; }
-  .progress-step-label-pending { color: #64748b; }
+  /* Subtle contrast boost for labels across themes - softer effects */
+  .progress-step-label-completed { 
+    color: var(--primary-start);
+    text-shadow: 0 0.5px 1px rgba(255,255,255,0.4), 0 0 2px rgba(0,0,0,0.04);
+  }
+  .progress-step-label-active { 
+    color: var(--text-primary); 
+    font-weight: 600; 
+    text-shadow: 0 0.5px 1px rgba(255,255,255,0.5), 0 0 1px rgba(0,0,0,0.06);
+  }
+  .progress-step-label-pending { 
+    color: #64748b; 
+    text-shadow: 0 0.5px 1px rgba(255,255,255,0.3), 0 0 1px rgba(0,0,0,0.03);
+  }
+
+  /* Generic utility to add readable contrast on variable backgrounds - softened */
+  .label-contrast {
+    text-shadow: 0 0.5px 1px rgba(255,255,255,0.4), 0 0 1px rgba(0,0,0,0.06);
+  }
 
   /* Safari gradient text fix */
   .text-gradient-fix { -webkit-text-fill-color: transparent; }
