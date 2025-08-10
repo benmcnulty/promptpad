@@ -101,9 +101,14 @@ export default function Home() {
   }, [run, outputText]);
 
   return (
-    <div className="min-h-screen flex flex-col gradient-surface">
+    <div className="h-screen flex flex-col gradient-surface overflow-hidden">
+      {/* Main App Content (disabled when welcome modal open) */}
+      <div
+        className={`flex flex-col h-full ${showWelcome ? 'pointer-events-none' : ''}`}
+        {...(showWelcome ? { 'aria-hidden': true } : {})}
+      >
       {/* Header */}
-      <header className="glass border-b border-white/20 px-6 py-6 backdrop-blur-md">
+      <header className="glass border-b border-white/20 px-6 py-4 backdrop-blur-md flex-shrink-0">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
             Promptpad
@@ -115,10 +120,10 @@ export default function Home() {
       </header>
 
       {/* Main Content - Split Layout */}
-      <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-4">
+      <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-4 min-h-0 overflow-hidden">
         {/* Left Pane - Input */}
-        <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden">
-          <div className="gradient-primary p-6">
+        <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden min-h-0">
+          <div className="gradient-primary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -133,7 +138,7 @@ export default function Home() {
               Enter your terse instructions to expand into structured prompts
             </div>
           </div>
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 min-h-0">
             <textarea
               className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-emerald-300 placeholder:text-slate-700 text-slate-900"
               placeholder={`Enter your prompt ideas here...\n\nExample: "Create a marketing email for new product launch"\n\nPress Refine to expand into a structured, copy-ready prompt.`}
@@ -142,10 +147,11 @@ export default function Home() {
               aria-label="Prompt input area"
             />
           </div>
-          <div className="p-6 border-t border-white/20 bg-white/40 backdrop-blur-sm">
+          <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <TokenCounter text={inputText} className="order-2 sm:order-1" />
               <button
+                type="button"
                 className="order-1 sm:order-2 gradient-primary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center"
                 disabled={!canRefine}
                 aria-label="Refine prompt"
@@ -166,6 +172,7 @@ export default function Home() {
                 {statusSummary}
               </span>
               <button
+                type="button"
                 className="text-slate-500 hover:text-slate-700 focus-visible font-medium transition-colors duration-200 bg-white/60 hover:bg-white/80 px-3 py-1 rounded-md backdrop-blur-sm border border-white/40"
                 onClick={reset}
                 aria-label="Reset progress"
@@ -176,8 +183,8 @@ export default function Home() {
           </div>
         </div>
         {/* Right Pane - Output */}
-        <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden mt-4 lg:mt-0">
-          <div className="gradient-secondary p-6">
+        <div className="flex-1 lg:w-1/2 flex flex-col glass rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden mt-4 lg:mt-0 min-h-0">
+          <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -192,7 +199,7 @@ export default function Home() {
               Your expanded, copy-ready prompt will appear here
             </div>
           </div>
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 min-h-0">
             <textarea
               className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900"
               placeholder={`Your refined prompt will appear here...\n\nAfter refining, you can edit the output and use 'Reinforce' to tighten and optimize your changes.`}
@@ -201,11 +208,12 @@ export default function Home() {
               aria-label="Prompt output area"
             />
           </div>
-          <div className="p-6 border-t border-white/20 bg-white/40 backdrop-blur-sm">
+          <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <TokenCounter text={outputText} className="order-2 sm:order-1" />
               <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-2">
                 <button
+                  type="button"
                   className="px-4 py-2 bg-slate-400 text-white rounded-lg font-medium shadow-soft opacity-50 cursor-not-allowed transition-all duration-200"
                   disabled
                   aria-label="Undo last change"
@@ -220,6 +228,7 @@ export default function Home() {
                   Undo
                 </button>
                 <button
+                  type="button"
                   className="gradient-secondary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center"
                   disabled={!canReinforce}
                   aria-label="Reinforce edited prompt"
@@ -245,23 +254,83 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Debug Panel */}
+      {showDebug && (
+        <div className="border-t border-white/20 bg-gray-900 text-green-400 font-mono text-xs max-h-80 overflow-hidden flex flex-col flex-shrink-0">
+          <div className="p-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
+            <span className="text-green-300 font-semibold">🖥️ Debug Terminal</span>
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={clearDebugLogs}
+                className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-xs transition-colors duration-200"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDebug(false)}
+                className="px-2 py-1 bg-red-700 hover:bg-red-600 text-white rounded text-xs transition-colors duration-200"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-auto p-3 space-y-2">
+            {debugLogs.length === 0 ? (
+              <div className="text-gray-500">No debug logs yet. Perform a refine operation to see debug output.</div>
+            ) : (
+              debugLogs.map((log, idx) => (
+                <div key={idx} className="border-l-2 border-gray-700 pl-3">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span
+                      className={`px-1 rounded text-xs font-bold ${
+                        log.type === "request"
+                          ? "bg-blue-700 text-blue-200"
+                          : log.type === "response"
+                          ? "bg-yellow-700 text-yellow-200"
+                          : "bg-gray-700 text-gray-300"
+                      }`}
+                    >
+                      {log.type.toUpperCase()}
+                    </span>
+                    <span className="text-gray-400 text-xs">
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="text-green-300 whitespace-pre-wrap break-words">
+                    {typeof log.content === "string"
+                      ? log.content
+                      : JSON.stringify(log.content, null, 2)}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Status Bar */}
+      <StatusBar onDebugToggle={setShowDebug} debugOpen={showDebug} />
+  </div>
+
       {/* Welcome Modal */}
       {showWelcome && !inputText && !outputText && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) dismissWelcome();
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
           aria-modal="true"
           role="dialog"
           tabIndex={-1}
+          onClick={dismissWelcome}
         >
           <div
-            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto no-outline"
+            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto"
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
+              type="button"
               onClick={dismissWelcome}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 transition-colors duration-200 flex items-center justify-center focus-visible"
               aria-label="Close welcome message"
@@ -309,6 +378,7 @@ export default function Home() {
               </label>
             </div>
             <button
+              type="button"
               onClick={dismissWelcome}
               className="gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold shadow-soft hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus-visible"
             >
@@ -317,63 +387,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      {/* Debug Panel */}
-      {showDebug && (
-        <div className="border-t border-white/20 bg-gray-900 text-green-400 font-mono text-xs max-h-80 overflow-hidden flex flex-col">
-          <div className="p-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
-            <span className="text-green-300 font-semibold">🖥️ Debug Terminal</span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={clearDebugLogs}
-                className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-xs transition-colors duration-200"
-              >
-                Clear
-              </button>
-              <button
-                onClick={() => setShowDebug(false)}
-                className="px-2 py-1 bg-red-700 hover:bg-red-600 text-white rounded text-xs transition-colors duration-200"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-auto p-3 space-y-2">
-            {debugLogs.length === 0 ? (
-              <div className="text-gray-500">No debug logs yet. Perform a refine operation to see debug output.</div>
-            ) : (
-              debugLogs.map((log, idx) => (
-                <div key={idx} className="border-l-2 border-gray-700 pl-3">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span
-                      className={`px-1 rounded text-xs font-bold ${
-                        log.type === "request"
-                          ? "bg-blue-700 text-blue-200"
-                          : log.type === "response"
-                          ? "bg-yellow-700 text-yellow-200"
-                          : "bg-gray-700 text-gray-300"
-                      }`}
-                    >
-                      {log.type.toUpperCase()}
-                    </span>
-                    <span className="text-gray-400 text-xs">
-                      {new Date(log.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                  <div className="text-green-300 whitespace-pre-wrap break-words">
-                    {typeof log.content === "string"
-                      ? log.content
-                      : JSON.stringify(log.content, null, 2)}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Status Bar */}
-      <StatusBar onDebugToggle={setShowDebug} debugOpen={showDebug} />
     </div>
   );
 }
