@@ -257,8 +257,7 @@ export default function Home() {
           tabIndex={-1}
         >
           <div
-            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto"
-            style={{ outline: "none" }}
+            className="bg-white/95 backdrop-blur-md text-center max-w-md mx-4 p-8 rounded-2xl border border-white/60 shadow-elegant relative pointer-events-auto no-outline"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
