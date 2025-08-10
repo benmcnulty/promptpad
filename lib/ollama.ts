@@ -56,7 +56,7 @@ export class OllamaClient {
   private baseUrl: string
   private timeout: number
 
-  constructor(baseUrl: string = 'http://localhost:11434', timeout: number = 30000) {
+  constructor(baseUrl: string = 'http://localhost:11434', timeout: number = 120000) {
     this.baseUrl = baseUrl.replace(/\/$/, '') // Remove trailing slash
     this.timeout = timeout
   }
@@ -190,6 +190,6 @@ export const ollamaCustom =
   typeof process !== 'undefined' && process.env.OLLAMA_BASE_URL
     ? new OllamaClient(
         process.env.OLLAMA_BASE_URL,
-        parseInt(process.env.OLLAMA_TIMEOUT || '30000', 10)
+        parseInt(process.env.OLLAMA_TIMEOUT || '120000', 10)
       )
     : ollama

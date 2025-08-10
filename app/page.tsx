@@ -199,14 +199,46 @@ export default function Home() {
               Your expanded, copy-ready prompt will appear here
             </div>
           </div>
-          <div className="flex-1 p-4 min-h-0">
+          <div className="flex-1 p-4 min-h-0 relative">
             <textarea
-              className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900"
+              className={`w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900 ${state.loading ? 'pointer-events-none' : ''}`}
               placeholder={`Your refined prompt will appear here...\n\nAfter refining, you can edit the output and use 'Reinforce' to tighten and optimize your changes.`}
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
               aria-label="Prompt output area"
+              disabled={state.loading}
             />
+            
+            {/* Loading Overlay */}
+            {state.loading && (
+              <div className="absolute inset-4 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 backdrop-blur-sm border-2 border-cyan-300/50 rounded-lg flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                  {/* Animated Gradient Spinner */}
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 border-4 border-transparent border-t-cyan-500 border-r-violet-500 rounded-full animate-spin"></div>
+                    <div className="absolute inset-2 border-4 border-transparent border-b-emerald-500 border-l-blue-500 rounded-full animate-spin animate-reverse animate-spin-delay"></div>
+                    <div className="absolute inset-4 w-4 h-4 bg-gradient-to-br from-cyan-500 to-violet-500 rounded-full animate-pulse"></div>
+                  </div>
+                  
+                  {/* Loading Text */}
+                  <div className="text-center">
+                    <div className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-violet-600 bg-clip-text text-transparent mb-1">
+                      Refining Prompt...
+                    </div>
+                    <div className="text-sm text-slate-600 animate-pulse">
+                      AI is crafting your structured prompt
+                    </div>
+                  </div>
+                  
+                  {/* Animated Dots */}
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full animate-bounce animate-bounce-delay-1"></div>
+                    <div className="w-2 h-2 bg-gradient-to-r from-violet-500 to-emerald-500 rounded-full animate-bounce animate-bounce-delay-2"></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">

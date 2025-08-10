@@ -73,7 +73,15 @@ export async function POST(req: Request) {
         const { text, usage } = await ollama.generate(model, prompt, { temperature })
         console.log(`✅ Refine API: Got response from Ollama (${text.length} chars)`)
         console.log(`📊 Usage:`, usage)
-        return NextResponse.json({ output: text, usage, systemPrompt: prompt })
+        
+        // Clean up any unwanted prefixes the model might add
+        const cleanedText = text
+          .replace(/^\*\*Prompt:\*\*\s*/i, '')
+          .replace(/^Prompt:\s*/i, '')
+          .replace(/^# Prompt\s*/i, '')
+          .trim()
+        
+        return NextResponse.json({ output: cleanedText, usage, systemPrompt: prompt })
       } else {
         const draft = body.draft as string
         const prompt = buildReinforcePrompt(draft)
@@ -81,8 +89,16 @@ export async function POST(req: Request) {
         console.log(`📝 System prompt:`, prompt)
         const { text, usage } = await ollama.generate(model, prompt, { temperature })
         console.log(`✅ Reinforce API: Got response from Ollama (${text.length} chars)`)
-        const patch = [{ op: 'replace', from: [0, draft.length], to: text }]
-        return NextResponse.json({ output: text, usage, patch, systemPrompt: prompt })
+        
+        // Clean up any unwanted prefixes the model might add
+        const cleanedText = text
+          .replace(/^\*\*Prompt:\*\*\s*/i, '')
+          .replace(/^Prompt:\s*/i, '')
+          .replace(/^# Prompt\s*/i, '')
+          .trim()
+        
+        const patch = [{ op: 'replace', from: [0, draft.length], to: cleanedText }]
+        return NextResponse.json({ output: cleanedText, usage, patch, systemPrompt: prompt })
       }
     } catch (err) {
       console.error(`💥 Ollama generation failed:`, err)
@@ -132,11 +148,13 @@ function buildRefinePrompt(input: string): string {
     '- Keep temperature ≤ 0.3.',
     '- Be clear, actionable, and concise.',
     '- Include goals, constraints, tone, variables as appropriate.',
+    '- Do not include headings, labels, or prefixes like "Prompt:" or "**Prompt:**"',
+    '- Start directly with the prompt content',
     '',
     'INPUT:',
     input,
     '',
-    'OUTPUT: Provide only the final prompt, no explanation.',
+    'OUTPUT: Write only the refined prompt content, no labels or explanations.',
   ].join('\n')
 }
 

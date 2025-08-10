@@ -121,4 +121,22 @@ body {
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Animation utilities */
+  .animate-reverse {
+    animation-direction: reverse;
+  }
+  
+  /* Loading animations */
+  .animate-spin-delay {
+    animation-delay: -0.5s;
+  }
+  
+  .animate-bounce-delay-1 {
+    animation-delay: 0.1s;
+  }
+  
+  .animate-bounce-delay-2 {
+    animation-delay: 0.2s;
+  }
 }
