@@ -15,6 +15,7 @@ export default function Home() {
   const [debugLogs, setDebugLogs] = useState<
     Array<{ timestamp: string; type: "request" | "response" | "system"; content: any }>
   >([]);
+  const [copySuccess, setCopySuccess] = useState(false);
   const { state, statusSummary, run, reset } = useRefine("gpt-oss:20b", 0.2);
 
   const canRefine = useMemo(
@@ -54,6 +55,18 @@ export default function Home() {
   }, [showWelcome, dismissWelcome]);
 
   const clearDebugLogs = useCallback(() => setDebugLogs([]), []);
+
+  const copyToClipboard = useCallback(async () => {
+    if (!outputText.trim()) return;
+    
+    try {
+      await navigator.clipboard.writeText(outputText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  }, [outputText]);
 
   const onRefine = useCallback(async () => {
     const requestPayload = {
@@ -242,7 +255,33 @@ export default function Home() {
           </div>
           <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-              <TokenCounter text={outputText} className="order-2 sm:order-1" />
+              <div className="flex items-center gap-3 order-2 sm:order-1">
+                <TokenCounter text={outputText} />
+                {outputText.trim() && (
+                  <button
+                    type="button"
+                    onClick={copyToClipboard}
+                    className={`flex items-center px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                      copySuccess 
+                        ? 'bg-emerald-500 text-white shadow-lg' 
+                        : 'bg-white/60 hover:bg-white/80 text-slate-600 hover:text-slate-800 border border-white/40 shadow-soft'
+                    }`}
+                    aria-label="Copy refined prompt to clipboard"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                      {copySuccess ? (
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      ) : (
+                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                      )}
+                      {!copySuccess && (
+                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                      )}
+                    </svg>
+                    {copySuccess ? 'Copied!' : 'Copy'}
+                  </button>
+                )}
+              </div>
               <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-2">
                 <button
                   type="button"

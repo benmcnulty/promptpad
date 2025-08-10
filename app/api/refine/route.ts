@@ -79,6 +79,8 @@ export async function POST(req: Request) {
           .replace(/^\*\*Prompt:\*\*\s*/i, '')
           .replace(/^Prompt:\s*/i, '')
           .replace(/^# Prompt\s*/i, '')
+          .replace(/^Here's the (refined|reinforced) prompt:\s*/i, '')
+          .replace(/^"([^"]*)"$/s, '$1') // Remove surrounding quotes
           .trim()
         
         return NextResponse.json({ output: cleanedText, usage, systemPrompt: prompt })
@@ -95,6 +97,9 @@ export async function POST(req: Request) {
           .replace(/^\*\*Prompt:\*\*\s*/i, '')
           .replace(/^Prompt:\s*/i, '')
           .replace(/^# Prompt\s*/i, '')
+          .replace(/^Here's (an? )?(enhanced|improved|refined|reinforced) (version of the )?.*?prompt:\s*/i, '')
+          .replace(/^"([^"]*)"$/s, '$1') // Remove surrounding quotes
+          .replace(/\n\n(I made the following improvements|Let me know if|The improvements include)[\s\S]*$/i, '') // Remove trailing meta-commentary
           .trim()
         
         const patch = [{ op: 'replace', from: [0, draft.length], to: cleanedText }]
@@ -142,34 +147,40 @@ export async function POST(req: Request) {
 
 function buildRefinePrompt(input: string): string {
   return [
-    'You are Promptpad, a prompt-drafting assistant.',
-    'Task: Generate a structured, copy-ready prompt from the given INPUT.',
-    'Constraints:',
-    '- Keep temperature ≤ 0.3.',
-    '- Be clear, actionable, and concise.',
-    '- Include goals, constraints, tone, variables as appropriate.',
-    '- Do not include headings, labels, or prefixes like "Prompt:" or "**Prompt:**"',
-    '- Start directly with the prompt content',
+    'You are Promptpad, a prompt-drafting assistant that expands brief inputs into detailed, actionable prompts.',
     '',
-    'INPUT:',
-    input,
+    'Task: Transform the INPUT into a comprehensive, copy-ready prompt for an AI system.',
     '',
-    'OUTPUT: Write only the refined prompt content, no labels or explanations.',
+    'Guidelines:',
+    '- Expand vague requests into specific, actionable instructions',
+    '- Include relevant constraints like word count, format, tone, or style when appropriate',
+    '- Add context variables (e.g., {topic}, {audience}) when helpful',
+    '- Make the prompt clear enough that any AI could execute it well',
+    '- Do NOT include AI technical parameters like temperature, model settings, or system instructions',
+    '- Start directly with the prompt content - no labels, headers, or meta-text',
+    '',
+    'INPUT: ' + input,
+    '',
+    'Refined prompt:',
   ].join('\n')
 }
 
 function buildReinforcePrompt(draft: string): string {
   return [
-    'You are Promptpad, a prompt-drafting assistant.',
-    'Task: Tighten coordination of the DRAFT prompt by improving goals, constraints, tone, and variables while preserving intent.',
-    'Constraints:',
-    '- Keep temperature ≤ 0.3.',
-    '- Maintain clarity and professionalism.',
-    '- Avoid adding extraneous commentary.',
+    'You are Promptpad, a prompt optimization specialist.',
     '',
-    'DRAFT:',
-    draft,
+    'Task: Transform the DRAFT prompt into a more precise, actionable version.',
     '',
-    'OUTPUT: Provide only the improved full prompt, no explanation.',
+    'Apply these improvements:',
+    '- Replace vague terms with specific, measurable requirements',
+    '- Add essential constraints for better output quality',  
+    '- Reorganize for logical flow and clarity',
+    '- Remove redundancy and strengthen action words',
+    '- Do NOT include AI parameters like temperature or model settings',
+    '- Do NOT add explanations, commentary, or meta-text',
+    '',
+    'DRAFT: ' + draft,
+    '',
+    'OUTPUT: Write only the improved prompt, no explanations or analysis.',
   ].join('\n')
 }
