@@ -24,7 +24,8 @@ export default function RootLayout({
           <ModelProvider>
             <DebugProvider>
               <WelcomeProvider>
-                <div className="h-screen flex flex-col">
+                {/* Changed h-screen to min-h-screen to allow pages taller than viewport to scroll */}
+                <div className="min-h-screen flex flex-col">
                   <AppHeader />
                   <main className="flex-1 min-h-0">
                     {children}
