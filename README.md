@@ -77,6 +77,7 @@ graph LR
 - **📊 Real-time Token Counting**: Precise TikToken integration with fallbacks
 - **📋 One-Click Copy**: Instant clipboard integration with visual feedback
 - **⚡ Local-First**: All processing via your local Ollama instance
+- **🧩 Model Selector**: Choose any available Ollama model; preference saved locally
 - **🎨 Live Preview**: Real-time editing with immediate feedback
 
 ### 🎨 Modern UI/UX

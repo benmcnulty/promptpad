@@ -18,10 +18,11 @@ jest.mock('@/hooks/useRefine', () => {
 
 import Home from '@/app/page'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { ModelProvider } from '@/components/ModelProvider'
 
 describe('Home refine flow (mocked)', () => {
   it('handles successful refine and sets output text', async () => {
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     fireEvent.change(screen.getByLabelText('Prompt input area'), { target: { value: 'idea' } })
     const btn = screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')
     expect(btn).toBeEnabled()
@@ -32,7 +33,7 @@ describe('Home refine flow (mocked)', () => {
   })
 
   it('logs fallback when output invalid (blank string)', async () => {
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     fireEvent.change(screen.getByLabelText('Prompt input area'), { target: { value: 'bad' } })
     const btn = screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')
     fireEvent.click(btn)

@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import StatusBar from '@/components/StatusBar'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { ModelProvider } from '@/components/ModelProvider'
 
 // Mock fetch for component tests
 const mockFetch = jest.fn()
@@ -23,7 +24,7 @@ describe('StatusBar', () => {
       json: async () => ({ models: [{ name: 'gpt-oss:20b' }] }),
     })
 
-  render(<ThemeProvider><StatusBar /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
     
     // Check for status bar role
     expect(screen.getByRole('status')).toBeInTheDocument()
@@ -47,9 +48,9 @@ describe('StatusBar', () => {
       expect(screen.getByText('Connected')).toBeInTheDocument()
     })
 
-  // Ensure accent select has normalization class for cross-browser consistency
-  const accentSelect = screen.getByLabelText('Select accent color')
-  expect(accentSelect).toHaveClass('select-reset')
+  // Ensure theme accent selector present via its aria-label
+  const accentButton = screen.getByLabelText('Select theme accent color')
+  expect(accentButton).toBeInTheDocument()
   })
 
   it('displays checking status initially then updates', async () => {
@@ -66,7 +67,7 @@ describe('StatusBar', () => {
       }), 100))
     )
 
-  render(<ThemeProvider><StatusBar /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
     
     // Should show checking status initially
     expect(screen.getByText('Checking...')).toBeInTheDocument()
@@ -88,7 +89,7 @@ describe('StatusBar', () => {
     // Second call: /api/models fails
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-  render(<ThemeProvider><StatusBar /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
 
     await waitFor(() => {
       expect(screen.getByText('Error')).toBeInTheDocument()
@@ -106,7 +107,7 @@ describe('StatusBar', () => {
     // Second: /api/models error
     mockFetch.mockResolvedValueOnce({ ok: false, status: 503 })
 
-  render(<ThemeProvider><StatusBar /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
 
     await waitFor(() => {
       expect(screen.getByText('Error')).toBeInTheDocument()
@@ -123,7 +124,7 @@ describe('StatusBar', () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ models: [] }) })
 
     const customClass = 'custom-status-bar'
-  const { container } = render(<ThemeProvider><StatusBar className={customClass} /></ThemeProvider>)
+  const { container } = render(<ThemeProvider><ModelProvider><StatusBar className={customClass} /></ModelProvider></ThemeProvider>)
     
     expect(container.firstChild).toHaveClass(customClass)
   })

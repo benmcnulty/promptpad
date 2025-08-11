@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@/components/ThemeProvider'
 import ThemeDropdown from '@/components/ThemeDropdown'
+import ModelDropdown from '@/components/ModelDropdown'
 
 interface StatusBarProps {
   className?: string
@@ -109,9 +110,7 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
         
         <span className="flex items-center">
           <span className="text-slate-600 mr-2 font-medium">Model:</span>
-          <code className="bg-white/60 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-mono border border-white/40 text-slate-700 shadow-soft">
-            gpt-oss:20b
-          </code>
+          <ModelDropdown />
         </span>
       </div>
 

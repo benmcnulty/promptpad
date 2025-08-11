@@ -6,8 +6,10 @@ import TokenCounter from "@/components/TokenCounter";
 import ProgressTracker from "@/components/ProgressTracker";
 import Tooltip from "@/components/Tooltip";
 import { useRefine } from "@/hooks/useRefine";
+import { useModel } from "@/components/ModelProvider";
 
 export default function Home() {
+  const { selectedModel } = useModel()
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [showWelcome, setShowWelcome] = useState(true);
@@ -17,7 +19,8 @@ export default function Home() {
     Array<{ timestamp: string; type: "request" | "response" | "system"; content: any }>
   >([]);
   const [copySuccess, setCopySuccess] = useState(false);
-  const { state, statusSummary, run, reset } = useRefine("gpt-oss:20b", 0.2);
+  const [copyDebugSuccess, setCopyDebugSuccess] = useState(false);
+  const { state, statusSummary, run, reset } = useRefine(selectedModel, 0.2);
 
   const canRefine = useMemo(
     () => inputText.trim().length > 0 && !state.loading,
@@ -83,7 +86,7 @@ export default function Home() {
     const requestPayload = {
       mode: "refine",
       input: inputText,
-      model: "gpt-oss:20b",
+      model: selectedModel,
       temperature: 0.2,
     };
     addDebugLog(
@@ -121,7 +124,7 @@ export default function Home() {
     } catch (error) {
       addDebugLog("system", `💥 Error: ${error}`);
     }
-  }, [run, inputText, addDebugLog]);
+  }, [run, inputText, addDebugLog, selectedModel]);
 
   const onReinforce = useCallback(async () => {
     const text = outputText.trim() || inputText.trim()
@@ -130,7 +133,7 @@ export default function Home() {
     const requestPayload = {
       mode: "reinforce",
       draft: text,
-      model: "gpt-oss:20b",
+      model: selectedModel,
       temperature: 0.2,
     };
     addDebugLog(
@@ -168,13 +171,13 @@ export default function Home() {
     } catch (error) {
       addDebugLog("system", `💥 Error: ${error}`);
     }
-  }, [run, outputText, inputText, addDebugLog]);
+  }, [run, outputText, inputText, addDebugLog, selectedModel]);
 
   const onSpec = useCallback(async () => {
     const requestPayload = {
       mode: "spec",
       input: inputText,
-      model: "gpt-oss:20b",
+      model: selectedModel,
       temperature: 0.2,
     };
     addDebugLog(
@@ -212,7 +215,25 @@ export default function Home() {
     } catch (error) {
       addDebugLog("system", `💥 Error: ${error}`);
     }
-  }, [run, inputText, addDebugLog]);
+  }, [run, inputText, addDebugLog, selectedModel]);
+
+  const copyDebugToClipboard = useCallback(async () => {
+    try {
+      const text = debugLogs
+        .map((log) => {
+          const payload = typeof log.content === 'string' ? log.content : JSON.stringify(log.content, null, 2)
+          return `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.type.toUpperCase()}\n${payload}`
+        })
+        .join('\n\n')
+      await navigator.clipboard.writeText(text)
+      setCopyDebugSuccess(true)
+      setTimeout(() => setCopyDebugSuccess(false), 2000)
+    } catch (err) {
+      console.groupCollapsed('📋 Debug copy failed')
+      console.error(err)
+      console.groupEnd()
+    }
+  }, [debugLogs]);
 
   return (
     <div className="h-screen flex flex-col gradient-surface overflow-hidden">
@@ -441,13 +462,28 @@ export default function Home() {
             <div className="flex items-center space-x-2">
               <button
                 type="button"
-                onClick={() => { localStorage.removeItem('promptpad-welcome-dismissed'); setShowWelcome(true); setDontShowAgain(false); }}
-                className="px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded text-xs transition-colors duration-200"
-                title="Reset welcome modal dismissed setting"
-                aria-label="Reset welcome modal"
-                data-testid="reset-welcome"
+                onClick={copyDebugToClipboard}
+                className="px-2 py-1 bg-sky-700 hover:bg-sky-600 text-white rounded text-xs transition-colors duration-200"
+                title="Copy debug output"
+                aria-label="Copy debug output"
               >
-                Reset Welcome
+                {copyDebugSuccess ? 'Copied' : 'Copy'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { 
+                  localStorage.removeItem('promptpad-welcome-dismissed');
+                  localStorage.removeItem('promptpad-accent');
+                  localStorage.removeItem('promptpad-model');
+                  setShowWelcome(true); 
+                  setDontShowAgain(false); 
+                }}
+                className="px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded text-xs transition-colors duration-200"
+                title="Reset stored preferences (welcome, accent, model)"
+                aria-label="Reset stored preferences"
+                data-testid="reset-local-storage"
+              >
+                Reset Local Storage
               </button>
               <button
                 type="button"
@@ -465,7 +501,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-auto p-3 space-y-2">
+          <div className="flex-1 overflow-auto p-3 space-y-2 select-text">
             {debugLogs.length === 0 ? (
               <div className="text-gray-500">No debug logs yet. Perform a refine operation to see debug output.</div>
             ) : (
@@ -541,9 +577,11 @@ export default function Home() {
             </p>
             <div className="text-sm text-slate-800 bg-slate-100/90 backdrop-blur-sm p-4 rounded-xl border border-slate-300/60 shadow-soft mb-6">
               <div className="font-bold mb-2 text-slate-900">Prerequisites:</div>
-              <code className="block font-mono text-xs bg-white p-3 rounded-lg border border-slate-200 shadow-soft text-slate-800">
+              <p className="mb-2">Install Ollama and download the default <span className="font-semibold">gpt-oss</span> model:</p>
+              <code className="block font-mono text-xs bg-white p-3 rounded-lg border border-slate-200 shadow-soft text-slate-800 mb-2">
                 ollama pull gpt-oss:20b
               </code>
+              <a href="https://ollama.ai" target="_blank" rel="noreferrer" className="text-sky-700 hover:text-sky-900 underline">Download Ollama and learn more</a>
             </div>
             {/* Don't show again checkbox */}
             <div className="flex items-center justify-center mb-4">

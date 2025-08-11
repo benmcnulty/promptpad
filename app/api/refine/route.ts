@@ -90,21 +90,56 @@ export async function POST(req: Request) {
         console.group(`🔄 Refine API: ${model} (temp=${temperature})`)
         console.log(`📝 Input tokens: ~${body.input?.length || 0} chars`)
         
-        const { text, usage } = await ollama.generate(model, prompt, { temperature })
+        const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
         
         const duration = Date.now() - startTime
-        console.log(`✅ Response: ${text.length} chars in ${duration}ms`)
-        console.log(`📊 Tokens: ${usage.input_tokens} → ${usage.output_tokens} (ratio: ${(usage.output_tokens / usage.input_tokens).toFixed(2)}x)`)
+  console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
+  console.log(`📊 Tokens: ${usagePrimary.input_tokens} → ${usagePrimary.output_tokens} (ratio: ${(usagePrimary.output_tokens / Math.max(usagePrimary.input_tokens,1)).toFixed(2)}x)`)
         console.groupEnd()
         
         // Clean up any unwanted prefixes the model might add
-        const cleanedText = text
+        let cleanedText = rawText
+          // Remove polite prefaces like "Okay, here's a refined prompt:" (handles straight & curly apostrophes)
+          .replace(/^(?:Okay|Sure|Certainly|Alright|Great|Fine)(?:,|\.)?\s+(?:here['’]s\s+)?(?:an?\s+)?(?:refined|improved|enhanced|better)?\s*prompt:\s*/i, '')
           .replace(/^\*\*Prompt:\*\*\s*/i, '')
           .replace(/^Prompt:\s*/i, '')
           .replace(/^# Prompt\s*/i, '')
-          .replace(/^Here's the (refined|reinforced) prompt:\s*/i, '')
-          .replace(/^"([\s\S]*)"$/, '$1') // Remove surrounding quotes without dotAll flag
+          .replace(/^Here['’]s the (refined|reinforced) prompt:\s*/i, '')
+          .replace(/^Here is the (refined|reinforced) prompt:\s*/i, '')
+          .replace(/^[“”]([\s\S]*?)[””]$/, '$1') // Remove surrounding curly quotes
+          .replace(/^"([\s\S]*)"$/, '$1') // Remove surrounding straight quotes
           .trim()
+
+        // Secondary line-level cleanup: drop a first short meta line referencing refined prompt
+        cleanedText = cleanedText.replace(/^.{0,80}refined prompt:?\n+\s*/i, '')
+        cleanedText = cleanedText.replace(/^\*\*Prompt:\*\*\n+/, '')
+
+        // Heuristic detection for meta/noise requiring LLM cleanup (broadened)
+        const needsLLMPostProcess = /^(?:Okay|Sure|Certainly|Alright|Great|Fine)[,!.]?\s+here['’]s/i.test(rawText.trim())
+          || /^("|“|\*\*Prompt:|Prompt:|Here['’]s|Here is)/i.test(rawText.trim())
+          || /(refined|improved|enhanced) prompt:/i.test(rawText.slice(0,120))
+          || /(I (made|have made)|The improvements include)/i.test(rawText)
+
+        let usage = usagePrimary
+        if (needsLLMPostProcess) {
+          try {
+            const cleanupPrompt = buildCleanupPrompt(cleanedText, 'refine')
+            const { text: cleanedAgain, usage: usageCleanup } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+            const finalClean = cleanedAgain
+              .replace(/^"([\s\S]*)"$/, '$1')
+              .replace(/^`{3,}[a-zA-Z]*\n([\s\S]*?)\n`{3,}$/m, '$1')
+              .trim()
+            if (finalClean) {
+              cleanedText = finalClean
+              usage = {
+                input_tokens: usagePrimary.input_tokens + usageCleanup.input_tokens,
+                output_tokens: usagePrimary.output_tokens + usageCleanup.output_tokens,
+              }
+            }
+          } catch (cleanupErr) {
+            console.warn('⚠️ LLM cleanup phase failed, using heuristic cleanup only', cleanupErr)
+          }
+        }
         
         return NextResponse.json({ output: cleanedText, usage, systemPrompt: prompt })
       } else if (body.mode === 'reinforce') {
@@ -115,22 +150,51 @@ export async function POST(req: Request) {
         console.group(`🔄 Reinforce API: ${model} (temp=${temperature})`)
         console.log(`📝 Draft tokens: ~${body.draft?.length || 0} chars`)
         
-        const { text, usage } = await ollama.generate(model, prompt, { temperature })
+  const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
         
         const duration = Date.now() - startTime
-        console.log(`✅ Response: ${text.length} chars in ${duration}ms`)
-        console.log(`📊 Tokens: ${usage.input_tokens} → ${usage.output_tokens} (ratio: ${(usage.output_tokens / usage.input_tokens).toFixed(2)}x)`)
+  console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
+  console.log(`📊 Tokens: ${usagePrimary.input_tokens} → ${usagePrimary.output_tokens} (ratio: ${(usagePrimary.output_tokens / Math.max(usagePrimary.input_tokens,1)).toFixed(2)}x)`)
         console.groupEnd()
         
         // Clean up any unwanted prefixes the model might add
-        const cleanedText = text
+        let cleanedText = rawText
+          .replace(/^(?:Okay|Sure|Certainly|Alright|Great|Fine)(?:,|\.)?\s+(?:here['’]s\s+)?(?:an?\s+)?(?:refined|enhanced|improved|better)?\s*prompt:\s*/i, '')
           .replace(/^\*\*Prompt:\*\*\s*/i, '')
           .replace(/^Prompt:\s*/i, '')
           .replace(/^# Prompt\s*/i, '')
-          .replace(/^Here's (an? )?(enhanced|improved|refined|reinforced) (version of the )?.*?prompt:\s*/i, '')
-          .replace(/^"([\s\S]*)"$/, '$1') // Remove surrounding quotes without dotAll flag
-          .replace(/\n\n(I made the following improvements|Let me know if|The improvements include)[\s\S]*$/i, '') // Remove trailing meta-commentary
+          .replace(/^Here['’]s (an? )?(enhanced|improved|refined|reinforced) (version of the )?.*?prompt:\s*/i, '')
+          .replace(/^Here is (an? )?(enhanced|improved|refined|reinforced) (version of the )?.*?prompt:\s*/i, '')
+          .replace(/^[“”]([\s\S]*?)[””]$/, '$1')
+          .replace(/^"([\s\S]*)"$/, '$1')
+          .replace(/\n\n(I made the following improvements|Let me know if|The improvements include)[\s\S]*$/i, '')
           .trim()
+        cleanedText = cleanedText.replace(/^.{0,80}(refined|enhanced|improved|reinforced) prompt:?\n+\s*/i, '')
+        cleanedText = cleanedText.replace(/^\*\*Prompt:\*\*\n+/, '')
+        const needsLLMPostProcess = /^(?:Okay|Sure|Certainly|Alright|Great|Fine)[,!.]?\s+here['’]s/i.test(rawText.trim())
+          || /^("|“|\*\*Prompt:|Prompt:|Here['’]s|Here is)/i.test(rawText.trim())
+          || /(refined|enhanced|improved|reinforced) prompt:/i.test(rawText.slice(0,120))
+          || /(^|\n)(I (made|have made)|The improvements include)/i.test(rawText)
+        let usage = usagePrimary
+        if (needsLLMPostProcess) {
+          try {
+            const cleanupPrompt = buildCleanupPrompt(cleanedText, 'reinforce')
+            const { text: cleanedAgain, usage: usageCleanup } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+            const finalClean = cleanedAgain
+              .replace(/^"([\s\S]*)"$/, '$1')
+              .replace(/^`{3,}[a-zA-Z]*\n([\s\S]*?)\n`{3,}$/m, '$1')
+              .trim()
+            if (finalClean) {
+              cleanedText = finalClean
+              usage = {
+                input_tokens: usagePrimary.input_tokens + usageCleanup.input_tokens,
+                output_tokens: usagePrimary.output_tokens + usageCleanup.output_tokens,
+              }
+            }
+          } catch (cleanupErr) {
+            console.warn('⚠️ LLM cleanup phase failed (reinforce), using heuristic cleanup only', cleanupErr)
+          }
+        }
         
         const patch = [{ op: 'replace', from: [0, draft.length], to: cleanedText }]
         return NextResponse.json({ output: cleanedText, usage, patch, systemPrompt: prompt })
@@ -143,22 +207,47 @@ export async function POST(req: Request) {
         console.group(`🔄 Spec API: ${model} (temp=${temperature})`)
         console.log(`📝 Input tokens: ~${body.input?.length || 0} chars`)
         
-        const { text, usage } = await ollama.generate(model, prompt, { temperature })
+  const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
         
         const duration = Date.now() - startTime
-        console.log(`✅ Response: ${text.length} chars in ${duration}ms`)
-        console.log(`📊 Tokens: ${usage.input_tokens} → ${usage.output_tokens} (ratio: ${(usage.output_tokens / usage.input_tokens).toFixed(2)}x)`)
+  console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
+  console.log(`📊 Tokens: ${usagePrimary.input_tokens} → ${usagePrimary.output_tokens} (ratio: ${(usagePrimary.output_tokens / Math.max(usagePrimary.input_tokens,1)).toFixed(2)}x)`)
         console.groupEnd()
         
         // Clean up any unwanted prefixes the model might add
-        const cleanedText = text
+        let cleanedText = rawText
+          .replace(/^(?:Okay|Sure|Certainly|Alright|Great|Fine)(?:,|\.)?\s+(?:here['’]s\s+)?(?:an?\s+)?(?:detailed|comprehensive)?\s*spec(ification)?:\s*/i, '')
           .replace(/^\*\*Specification:\*\*\s*/i, '')
           .replace(/^Specification:\s*/i, '')
           .replace(/^# Specification\s*/i, '')
-          .replace(/^Here's the (detailed|comprehensive) (project )?specification:\s*/i, '')
-          .replace(/^"([\s\S]*)"$/, '$1') // Remove surrounding quotes without dotAll flag
+          .replace(/^Here['’]s the (detailed|comprehensive) (project )?specification:\s*/i, '')
+          .replace(/^Here is the (detailed|comprehensive) (project )?specification:\s*/i, '')
+          .replace(/^[“”]([\s\S]*?)[””]$/, '$1')
+          .replace(/^"([\s\S]*)"$/, '$1')
           .trim()
-        
+        cleanedText = cleanedText.replace(/^\*\*Specification:\*\*\n+/, '')
+        const needsLLMPostProcess = /^(?:Okay|Sure|Certainly|Alright|Great|Fine)[,!.]?\s+here['’]s/i.test(rawText.trim())
+          || /^("|“|\*\*Specification:|Specification:|Here['’]s|Here is)/i.test(rawText.trim())
+          || /(detailed|comprehensive) (project )?specification:/i.test(rawText.slice(0,140))
+        let usage = usagePrimary
+        if (needsLLMPostProcess) {
+          try {
+            const cleanupPrompt = buildCleanupPrompt(cleanedText, 'spec')
+            const { text: cleanedAgain, usage: usageCleanup } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+            const finalClean = cleanedAgain
+              .replace(/^"([\s\S]*)"$/, '$1')
+              .trim()
+            if (finalClean) {
+              cleanedText = finalClean
+              usage = {
+                input_tokens: usagePrimary.input_tokens + usageCleanup.input_tokens,
+                output_tokens: usagePrimary.output_tokens + usageCleanup.output_tokens,
+              }
+            }
+          } catch (cleanupErr) {
+            console.warn('⚠️ LLM cleanup phase failed (spec), using heuristic cleanup only', cleanupErr)
+          }
+        }
         return NextResponse.json({ output: cleanedText, usage, systemPrompt: prompt })
       }
     } catch (err) {
@@ -307,5 +396,32 @@ function buildSpecPrompt(input: string): string {
     'INPUT: ' + input,
     '',
     'Generate the focused project specification:',
+  ].join('\n')
+}
+
+/**
+ * Builds a secondary cleanup prompt to normalize model output across heterogeneous local models.
+ * Ensures removal of wrapping quotes, prefatory labels ("Prompt:", "Here's..."), meta commentary,
+ * and improvement summaries while preserving the substantive refined/reinforced content.
+ *
+ * The model MUST return only the cleaned content with no additional framing, labels, or quotes.
+ */
+function buildCleanupPrompt(content: string, mode: 'refine' | 'reinforce' | 'spec'): string {
+  return [
+    'You are a formatting normalizer for Promptpad. Clean the RAW OUTPUT below.',
+    '',
+    'Rules:',
+    '- Return only the cleaned prompt/spec content',
+    '- Remove leading/trailing quotes, backticks, code fences, or labels',
+    '- Remove lines that are meta commentary about improvements you made',
+    '- Do NOT add any new commentary, headers, or labels',
+    '- Preserve bullet/section structure already present',
+    '- Do not invent new content beyond trivial formatting fixes',
+    '',
+    `Mode: ${mode}`,
+    'RAW OUTPUT (between <<< >>>):',
+    '<<<\n' + content + '\n>>>',
+    '',
+    'Return ONLY the cleaned content:'
   ].join('\n')
 }

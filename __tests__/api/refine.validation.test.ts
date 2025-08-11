@@ -45,7 +45,7 @@ describe('POST /api/refine (validation)', () => {
   it('clamps high temperature', async () => {
     const { POST } = await import('@/app/api/refine/route')
     await POST(makeReq({ mode: 'refine', input: 'y', model: 'gpt-oss:20b', temperature: 0.95 }))
-    expect(ollama.generate).toHaveBeenCalled()
+  expect(ollama.generate.mock.calls.length).toBeGreaterThanOrEqual(1)
   })
 
   it('documents current contract where model required', async () => {

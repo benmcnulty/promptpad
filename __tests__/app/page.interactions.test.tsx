@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import Home from '@/app/page'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { ModelProvider } from '@/components/ModelProvider'
 
 describe('Home Page interactions', () => {
   beforeEach(() => {
@@ -9,7 +10,7 @@ describe('Home Page interactions', () => {
   })
 
   it('dismisses welcome and sets localStorage when checkbox checked', async () => {
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     const checkbox = screen.getByRole('checkbox')
     fireEvent.click(checkbox)
     fireEvent.click(screen.getByRole('button', { name: 'Get Started' }))
@@ -22,7 +23,7 @@ describe('Home Page interactions', () => {
   it('toggles theme and persists selection', () => {
     // Skip welcome modal for easier access
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     const initialTheme = document.documentElement.dataset.theme
     const toggle = screen.getByRole('button', { name: /toggle color theme/i })
     fireEvent.click(toggle)
@@ -32,32 +33,34 @@ describe('Home Page interactions', () => {
 
   it('changes accent color via dropdown', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-  render(<ThemeProvider><Home /></ThemeProvider>)
-    const select = screen.getByLabelText(/accent color/i)
-    fireEvent.change(select, { target: { value: 'golden' } })
+    render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
+    const trigger = screen.getByLabelText(/select theme accent color/i)
+    fireEvent.click(trigger)
+    const option = screen.getByText('Golden')
+    fireEvent.click(option)
     expect(document.documentElement.dataset.accent).toBe('golden')
   })
 
   it('reset welcome button clears dismissal flag', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     // Open debug
     fireEvent.click(screen.getByRole('button', { name: /debug/i }))
-    const resetBtn = screen.getByTestId('reset-welcome')
+    const resetBtn = screen.getByTestId('reset-local-storage')
     fireEvent.click(resetBtn)
     expect(localStorage.getItem('promptpad-welcome-dismissed')).toBeNull()
   })
 
   it('skips welcome when localStorage flag present', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     expect(screen.queryByText('Welcome to Promptpad')).toBeNull()
   })
 
   it('toggles debug panel via status bar', async () => {
     // Set localStorage to skip welcome modal so status bar is accessible
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
-  render(<ThemeProvider><Home /></ThemeProvider>)
+  render(<ThemeProvider><ModelProvider><Home /></ModelProvider></ThemeProvider>)
     const debugButton = await screen.findByRole('button', { name: /debug/i })
     fireEvent.click(debugButton)
     await waitFor(() => {
