@@ -23,8 +23,13 @@ export default function Home() {
     [inputText, state.loading]
   );
   const canReinforce = useMemo(
-    () => outputText.trim().length > 0 && !state.loading,
-    [outputText, state.loading]
+    () => (outputText.trim().length > 0 || inputText.trim().length > 0) && !state.loading,
+    [outputText, inputText, state.loading]
+  );
+  
+  const canSpec = useMemo(
+    () => inputText.trim().length > 0 && !state.loading,
+    [inputText, state.loading]
   );
 
   useEffect(() => {
@@ -118,13 +123,95 @@ export default function Home() {
   }, [run, inputText, addDebugLog]);
 
   const onReinforce = useCallback(async () => {
-    const warnTimer = setTimeout(() => {
-      addDebugLog("system", "⏳ Model still processing reinforce request... continuing to wait");
-    }, 120000);
-    const res = await run("reinforce", outputText);
-    clearTimeout(warnTimer);
-    if (res && res.output) setOutputText(res.output);
-  }, [run, outputText, addDebugLog]);
+    const text = outputText.trim() || inputText.trim()
+    if (!text) return
+    
+    const requestPayload = {
+      mode: "reinforce",
+      draft: text,
+      model: "gpt-oss:20b",
+      temperature: 0.2,
+    };
+    addDebugLog(
+      "system",
+      `Starting reinforce operation for: "${text.slice(0, 50)}${
+        text.length > 50 ? "..." : ""
+      }"`
+    );
+    addDebugLog("request", requestPayload);
+    try {
+      const warnTimer = setTimeout(() => {
+        addDebugLog("system", "⏳ Model still processing reinforce request... continuing to wait");
+      }, 120000);
+      const res = await run("reinforce", text);
+      clearTimeout(warnTimer);
+      addDebugLog("response", res);
+      if (res?.systemPrompt)
+        addDebugLog("system", `System Prompt Used:\n${res.systemPrompt}`);
+      if (res?.fallbackUsed)
+        addDebugLog("system", "⚠️ Using development fallback - Ollama unavailable");
+      if (
+        res &&
+        res.output &&
+        typeof res.output === "string" &&
+        res.output.trim().length > 0
+      ) {
+        addDebugLog(
+          "system",
+          `✅ Successfully set output (${res.output.length} chars)`
+        );
+        setOutputText(res.output);
+      } else {
+        addDebugLog("system", `⚠️ Invalid output: ${JSON.stringify(res)}`);
+      }
+    } catch (error) {
+      addDebugLog("system", `💥 Error: ${error}`);
+    }
+  }, [run, outputText, inputText, addDebugLog]);
+
+  const onSpec = useCallback(async () => {
+    const requestPayload = {
+      mode: "spec",
+      input: inputText,
+      model: "gpt-oss:20b",
+      temperature: 0.2,
+    };
+    addDebugLog(
+      "system",
+      `Starting spec operation for: "${inputText.slice(0, 50)}${
+        inputText.length > 50 ? "..." : ""
+      }"`
+    );
+    addDebugLog("request", requestPayload);
+    try {
+      const warnTimer = setTimeout(() => {
+        addDebugLog("system", "⏳ Model still processing spec request... continuing to wait (no timeout abort)");
+      }, 120000);
+      const res = await run("spec", inputText);
+      clearTimeout(warnTimer);
+      addDebugLog("response", res);
+      if (res?.systemPrompt)
+        addDebugLog("system", `System Prompt Used:\n${res.systemPrompt}`);
+      if (res?.fallbackUsed)
+        addDebugLog("system", "⚠️ Using development fallback - Ollama unavailable");
+      if (
+        res &&
+        res.output &&
+        typeof res.output === "string" &&
+        res.output.trim().length > 0
+      ) {
+        addDebugLog(
+          "system",
+          `✅ Successfully set output (${res.output.length} chars)`
+        );
+        setOutputText(res.output);
+      } else {
+        addDebugLog("system", `⚠️ Invalid output: ${JSON.stringify(res)}`);
+      }
+    } catch (error) {
+      addDebugLog("system", `💥 Error: ${error}`);
+    }
+  }, [run, inputText, addDebugLog]);
 
   return (
     <div className="h-screen flex flex-col gradient-surface overflow-hidden">
@@ -145,10 +232,10 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content - Split Layout */}
-      <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
-        {/* Left Pane - Input */}
-        <div className="flex-1 lg:w-1/2 flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden min-h-0 animate-fade-in-up">
+      {/* Main Content - Single Column Layout */}
+      <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
+        {/* Input Section */}
+        <div className="flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden animate-fade-in-up" style={{ height: '30%' }}>
           <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -161,55 +248,29 @@ export default function Home() {
               Input Draft
             </h2>
             <div className="text-white/90 text-sm">
-              Enter your terse instructions to expand into structured prompts
+              Enter your brief instructions - choose enhancement mode below
             </div>
           </div>
           <div className="flex-1 p-4 min-h-0">
             <textarea
               className="w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-[color:var(--primary-start)] placeholder:text-slate-700 text-slate-900 cursor-text-selection"
-              placeholder={`Enter your prompt ideas here...\n\nExample: "Create a marketing email for new product launch"\n\nPress Refine to expand into a structured, copy-ready prompt.`}
+              placeholder={`Enter your brief ideas here...\n\nExamples:\n• "Create a marketing email for new product launch" → Refine\n• "Build a task management app" → Spec\n• Edit output text then → Reinforce`}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               aria-label="Prompt input area"
             />
           </div>
-          <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-              <TokenCounter text={inputText} className="order-2 sm:order-1" />
-              <button
-                type="button"
-                className="order-1 sm:order-2 gradient-primary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center"
-                disabled={!canRefine}
-                aria-label="Refine prompt"
-                onClick={onRefine}
-              >
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 8.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Refine
-              </button>
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm">
-              <span className="text-slate-600 font-medium bg-white/60 px-3 py-1 rounded-md backdrop-blur-sm border border-white/40">
+          <div className="p-3 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <TokenCounter text={inputText} />
+              <span className="text-sm text-slate-600 font-medium">
                 {statusSummary}
               </span>
-              <button
-                type="button"
-                className="text-slate-500 hover:text-slate-700 focus-visible font-medium transition-colors duration-200 bg-white/60 hover:bg-white/80 px-3 py-1 rounded-md backdrop-blur-sm border border-white/40"
-                onClick={reset}
-                aria-label="Reset progress"
-              >
-                Reset
-              </button>
             </div>
           </div>
         </div>
-        {/* Right Pane - Output */}
-        <div className="flex-1 lg:w-1/2 flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden mt-4 lg:mt-0 min-h-0 animate-slide-in-right">
+        {/* Output Section */}
+        <div className="flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden animate-slide-in-right" style={{ height: '50%' }}>
           <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -219,19 +280,19 @@ export default function Home() {
                   clipRule="evenodd"
                 />
               </svg>
-              Refined Output
+              Enhanced Output
             </h2>
             <div className="text-white/90 text-sm">
-              Your expanded, copy-ready prompt will appear here
+              Your processed prompt will appear here - editable before reinforcement
             </div>
           </div>
           <div className="flex-1 p-4 min-h-0 relative">
             <textarea
               className={`w-full h-full resize-none bg-white/80 backdrop-blur-sm border-2 border-white/60 rounded-lg p-4 form-control focus-visible shadow-soft transition-all duration-200 hover:bg-white/90 focus:bg-white/95 focus:border-cyan-300 placeholder:text-slate-700 text-slate-900 cursor-text-selection ${state.loading ? 'pointer-events-none' : ''}`}
-              placeholder={`Your refined prompt will appear here...\n\nAfter refining, you can edit the output and use 'Reinforce' to tighten and optimize your changes.`}
+              placeholder={`Your enhanced prompt will appear here...\n\nChoose an enhancement mode:\n• Refine: Expand brief instructions into detailed prompts\n• Spec: Generate comprehensive coding project specifications\n• Reinforce: Optimize and tighten existing prompts`}
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
-              aria-label="Prompt output area"
+              aria-label="Enhanced prompt output area"
               disabled={state.loading}
             />
             
@@ -254,7 +315,7 @@ export default function Home() {
                   <div className="w-48">
                     <div className="loading-progress-bar mb-3" />
                     <div className="text-center text-sm leading-tight">
-                      <div className="loading-text-strong mb-1">Refining prompt</div>
+                      <div className="loading-text-strong mb-1">Processing prompt</div>
                       <div className="loading-subtle">Model is generating – this can take a moment</div>
                     </div>
                   </div>
@@ -262,74 +323,100 @@ export default function Home() {
               </div>
             )}
           </div>
-          <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm flex-shrink-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3 order-2 sm:order-1">
-                <TokenCounter text={outputText} />
-                {outputText.trim() && (
-                  <button
-                    type="button"
-                    onClick={copyToClipboard}
-                    className={`flex items-center px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      copySuccess 
-                        ? 'bg-emerald-500 text-white shadow-lg cursor-default transform scale-105' 
-                        : 'bg-white/60 hover:bg-white/80 text-slate-600 hover:text-slate-800 border border-white/40 shadow-soft cursor-copy hover:scale-105'
-                    }`}
-                    aria-label="Copy refined prompt to clipboard"
-                  >
-                    <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                      {copySuccess ? (
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      ) : (
-                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                      )}
-                      {!copySuccess && (
-                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                      )}
-                    </svg>
-                    {copySuccess ? 'Copied!' : 'Copy'}
-                  </button>
-                )}
-              </div>
-              <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-2">
+        </div>
+
+        {/* Control Panel */}
+        <div className="glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md p-4 flex-shrink-0">
+          {/* Enhancement Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <button
+              type="button"
+              className="flex-1 gradient-primary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center"
+              disabled={!canRefine}
+              aria-label="Refine prompt - Expand brief instructions into detailed prompts"
+              onClick={onRefine}
+            >
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 8.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Refine
+            </button>
+            
+            <button
+              type="button"
+              className="flex-1 gradient-secondary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center"
+              disabled={!canReinforce}
+              aria-label="Reinforce prompt - Optimize and tighten existing prompts"
+              onClick={onReinforce}
+            >
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M15.5 2A1.5 1.5 0 0014 3.5v13a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-13A1.5 1.5 0 0016.5 2h-1zM9.5 6A1.5 1.5 0 008 7.5v9A1.5 1.5 0 009.5 18h1a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 6h-1zM3.5 10A1.5 1.5 0 002 11.5v5A1.5 1.5 0 003.5 18h1A1.5 1.5 0 006 16.5v-5A1.5 1.5 0 004.5 10h-1z" />
+              </svg>
+              Reinforce
+            </button>
+            
+            <button
+              type="button"
+              className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center"
+              disabled={!canSpec}
+              aria-label="Spec prompt - Generate comprehensive coding project specifications"
+              onClick={onSpec}
+            >
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clipRule="evenodd" />
+              </svg>
+              Spec
+            </button>
+          </div>
+
+          {/* Status and Progress Row */}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <TokenCounter text={outputText} />
+              {outputText.trim() && (
                 <button
                   type="button"
-                  className="px-4 py-2 bg-slate-400 text-white rounded-lg font-medium shadow-soft opacity-50 cursor-not-allowed transition-all duration-200"
-                  disabled
-                  aria-label="Undo last change"
+                  onClick={copyToClipboard}
+                  className={`flex items-center px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                    copySuccess 
+                      ? 'bg-emerald-500 text-white shadow-lg cursor-default transform scale-105' 
+                      : 'bg-white/60 hover:bg-white/80 text-slate-600 hover:text-slate-800 border border-white/40 shadow-soft cursor-copy hover:scale-105'
+                  }`}
+                  aria-label="Copy enhanced prompt to clipboard"
                 >
-                  <svg className="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M7.793 2.232a.75.75 0 01-.025 1.06L4.887 6H13.5a7.5 7.5 0 010 15H9a.75.75 0 010-1.5h4.5a6 6 0 000-12H4.887l2.88 2.708a.75.75 0 11-1.035 1.085l-4.25-4a.75.75 0 010-1.085l4.25-4a.75.75 0 011.06.025z"
-                      clipRule="evenodd"
-                    />
+                  <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    {copySuccess ? (
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    ) : (
+                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    )}
+                    {!copySuccess && (
+                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    )}
                   </svg>
-                  Undo
+                  {copySuccess ? 'Copied!' : 'Copy'}
                 </button>
-                <button
-                  type="button"
-                  className="gradient-secondary text-white px-6 py-3 rounded-lg font-semibold shadow-elegant hover:shadow-lg transform hover:scale-105 focus-visible disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 transition-all duration-200 flex items-center cursor-button"
-                  disabled={!canReinforce}
-                  aria-label="Reinforce edited prompt"
-                  onClick={onReinforce}
-                >
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M15.5 2A1.5 1.5 0 0014 3.5v13a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-13A1.5 1.5 0 0016.5 2h-1zM9.5 6A1.5 1.5 0 008 7.5v9A1.5 1.5 0 009.5 18h1a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 6h-1zM3.5 10A1.5 1.5 0 002 11.5v5A1.5 1.5 0 003.5 18h1A1.5 1.5 0 006 16.5v-5A1.5 1.5 0 004.5 10h-1z" />
-                  </svg>
-                  Reinforce
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              )}
               <div className="text-sm text-slate-600 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-md border border-white/40">
                 Usage: <span className="font-mono font-semibold">in {state.usage?.input_tokens ?? 0} · out {state.usage?.output_tokens ?? 0}</span>
               </div>
-              <div className="w-full lg:w-auto lg:min-w-0 lg:flex-1 lg:max-w-md">
-                <ProgressTracker steps={state.steps} compact className="lg:hidden" />
-                <ProgressTracker steps={state.steps} className="hidden lg:block" />
-              </div>
             </div>
+            <div className="w-full lg:w-auto lg:min-w-0 lg:flex-1 lg:max-w-md">
+              <ProgressTracker steps={state.steps} compact className="lg:hidden" />
+              <ProgressTracker steps={state.steps} className="hidden lg:block" />
+            </div>
+            <button
+              type="button"
+              className="text-slate-500 hover:text-slate-700 focus-visible font-medium transition-colors duration-200 bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/40"
+              onClick={() => reset()}
+              aria-label="Reset progress"
+            >
+              Reset
+            </button>
           </div>
         </div>
       </main>

@@ -26,13 +26,14 @@ interface ProgressTrackerProps {
 }
 
 export default function ProgressTracker({ steps, className = '', compact = false }: ProgressTrackerProps) {
-  const activeStep = steps.findIndex(step => step.status === 'in_progress')
+  const activeStepIndex = steps.findIndex(step => step.status === 'in_progress')
+  const activeStep = activeStepIndex >= 0 ? steps[activeStepIndex] : null
   const completedSteps = steps.filter(step => step.status === 'done').length
   const hasError = steps.some(step => step.status === 'error')
   
   if (compact) {
     return (
-      <div className={`flex items-center space-x-2 ${className}`} aria-label="Refine progress tracker">
+      <div className={`flex items-center space-x-2 ${className}`} aria-label="Operation progress tracker">
         <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
           <div 
             className={`h-full transition-all duration-500 ease-out ${
@@ -42,14 +43,23 @@ export default function ProgressTracker({ steps, className = '', compact = false
           />
         </div>
         <span className="text-xs font-medium text-slate-600 min-w-0 whitespace-nowrap">
-          {completedSteps}/{steps.length}
+          {activeStep ? `Step ${activeStepIndex + 1} of ${steps.length}` : `${completedSteps}/${steps.length}`}
         </span>
       </div>
     )
   }
 
   return (
-    <div className={`space-y-3 ${className}`} aria-label="Refine progress tracker">
+    <div className={`space-y-3 ${className}`} aria-label="Operation progress tracker">
+      {/* Current step status */}
+      {activeStep && (
+        <div className="text-center mb-2">
+          <span className="text-sm font-medium text-slate-700">
+            Step {activeStepIndex + 1} of {steps.length}: {activeStep.label}
+          </span>
+        </div>
+      )}
+      
       {/* Primary progress bar */}
       <div className="flex items-center space-x-2">
         <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
@@ -111,7 +121,7 @@ export default function ProgressTracker({ steps, className = '', compact = false
 
       {/* Labels row */}
       <div className="flex justify-between mt-1 px-2">
-        {steps.map((step, idx) => {
+        {steps.map((step) => {
           const isActive = step.status === 'in_progress'
           const isCompleted = step.status === 'done'
           const hasError = step.status === 'error'

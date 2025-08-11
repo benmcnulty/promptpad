@@ -7,6 +7,9 @@
 
 import { execSync } from 'child_process'
 import { platform } from 'os'
+import { writeFileSync } from 'fs'
+import { dirname } from 'path'
+import { mkdirSync } from 'fs'
 
 /**
  * Copies text to the system clipboard
@@ -117,5 +120,35 @@ export function isClipboardAvailable(): boolean {
     }
   } catch {
     return false
+  }
+}
+
+/**
+ * Writes text content to a file
+ * 
+ * Creates the directory if it doesn't exist and writes the content to the file.
+ * 
+ * @param filePath - Path to the output file
+ * @param content - Text content to write
+ * @throws Error if write operation fails
+ * 
+ * @example
+ * ```typescript
+ * await writeToFile('./output.txt', 'Hello, world!')
+ * console.log('File written successfully!')
+ * ```
+ */
+export async function writeToFile(filePath: string, content: string): Promise<void> {
+  try {
+    // Ensure directory exists
+    const dir = dirname(filePath)
+    mkdirSync(dir, { recursive: true })
+    
+    // Write file
+    writeFileSync(filePath, content, 'utf8')
+  } catch (error) {
+    throw new Error(
+      `Failed to write file: ${error instanceof Error ? error.message : error}`
+    )
   }
 }

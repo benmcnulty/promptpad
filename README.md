@@ -9,7 +9,7 @@
 [![Tests](https://img.shields.io/badge/Tests-140%20passing-brightgreen)](https://github.com/yourusername/promptpad)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[Demo](#-quick-start)** • **[Features](#-production-features)** • **[Installation](#-installation)** • **[Documentation](#-documentation)** • **[Contributing](#-contributing)**
+**[Demo](#-quick-start)** • **[Features](#-production-features)** • **[Installation](#-installation)** • **[CLI](#-command-line-cli)** • **[Documentation](#-documentation)** • **[Contributing](#-contributing)**
 
 </div>
 
@@ -146,6 +146,28 @@ pnpm start            # Serve production build
 pnpm test             # Run test suite
 pnpm test:coverage    # Generate coverage report
 ```
+
+---
+
+## 💻 Command Line (CLI)
+
+Promptpad includes a CLI with the same Refine/Reinforce capabilities for terminal workflows.
+
+```bash
+# Link locally (optional)
+pnpm cli:install
+
+# Help
+promptpad --help
+
+# Refine
+promptpad refine "write documentation for API" --model gpt-oss:20b --temperature 0.2
+
+# Reinforce
+promptpad reinforce "Draft prompt content here" --output refined.md --copy
+```
+
+See `docs/CLI.md` for full usage and troubleshooting.
 
 ---
 

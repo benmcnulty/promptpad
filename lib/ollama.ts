@@ -256,7 +256,6 @@ export class OllamaClient {
       }
 
       // Use a soft timeout (warning only) instead of aborting the request so slow generations can complete
-      const controller = new AbortController()
       const started = Date.now()
       const softTimer = setTimeout(() => {
         const elapsed = Math.round((Date.now() - started) / 1000)

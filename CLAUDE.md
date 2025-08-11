@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Promptpad is a **fully functional** local-first prompt drafting tool built with Next.js 15.4.6 + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The app implements a two-pass workflow: Refine (expand) and Reinforce (tighten edited drafts) with comprehensive UI/UX enhancements.
+Promptpad is a **fully functional** local-first prompt drafting tool built with Next.js 15.4.6 + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The app implements a multi-mode workflow: Refine (expand prompts), Reinforce (optimize prompts), and Spec (generate coding project specifications) with comprehensive UI/UX enhancements.
 
 **Status**: ✅ **PRODUCTION READY** - Fully implemented with comprehensive testing, responsive design, loading animations, debugging tools, and optimized prompting.
 
@@ -22,8 +22,8 @@ Key documentation for understanding the codebase:
 ## Invariants & Boundaries
 - Local‑first via Ollama; default `gpt-oss:20b`; temperature ~0.2 (≤0.3 unless justified).
 - Ollama timeout: 120 seconds (increased from 30s to support large models like gpt-oss:20b).
-- Only two operations: Refine and Reinforce. Keep endpoints stable.
-- Endpoints: `GET /api/models`, `GET /api/git-info`, `POST /api/refine` with `mode: refine|reinforce` → `{ output, usage, patch?, systemPrompt?, fallbackUsed? }`.
+- Three operations: Refine, Reinforce, and Spec. Keep endpoints stable.
+- Endpoints: `GET /api/models`, `GET /api/git-info`, `POST /api/refine` with `mode: refine|reinforce|spec` → `{ output, usage, patch?, systemPrompt?, fallbackUsed? }`.
 - Patch format: compact text‑range ops used by diff/undo/redo. Do not change without an ADR.
 - All model responses are automatically cleaned of unwanted prefixes (e.g., "**Prompt:**", "Here's the refined prompt:").
 
@@ -31,7 +31,7 @@ Key documentation for understanding the codebase:
 - Endpoints:
   - `GET /api/models` → `{ models: Array<OllamaModel> }`  
   - `GET /api/git-info` → `{ sha: string, branch: string, timestamp: string }`
-  - `POST /api/refine` body `{ mode: "refine" | "reinforce", input?, draft?, model, temperature }` → `{ output, usage, patch?, systemPrompt?, fallbackUsed? }`
+  - `POST /api/refine` body `{ mode: "refine" | "reinforce" | "spec", input?, draft?, model, temperature }` → `{ output, usage, patch?, systemPrompt?, fallbackUsed? }`
 
 - Canonical API response example:
 ```json
@@ -76,7 +76,7 @@ When source code is implemented, use these commands:
 - `pnpm build` - Build for production
 - `pnpm test -- --coverage` - Run tests with coverage
 
-## Two‑Pass Workflow & Prompts
+## Multi‑Mode Workflow & Prompts
 
 ### Refine Operation
 **Purpose**: Expand terse input into detailed, actionable prompts
@@ -88,19 +88,24 @@ When source code is implemented, use these commands:
 **System Prompt**: Focused on sharpening language, adding missing constraints, reorganizing for clarity, and removing redundancy
 **Features**: No meta-commentary, significant content improvements, maintains original intent
 
+### Spec Operation
+**Purpose**: Generate comprehensive coding project specifications with intelligent technology guidance
+**System Prompt**: Expert-level instructions to analyze project requirements and create detailed technical specifications with architecture recommendations, technology stack selection, and implementation roadmaps
+**Features**: Multi-step processing with dynamic progress tracking, comprehensive project analysis, technology-specific recommendations
+
 ## Architecture & File Structure
 
 **Current implementation** (fully functional):
 ```
 app/
-  page.tsx                # ✅ Complete responsive UI with loading states
+  page.tsx                # ✅ Single-column responsive UI with three enhancement modes
   globals.css             # ✅ Green/blue gradient design system
   api/
     models/route.ts       # ✅ Lists Ollama models with health checking
-    refine/route.ts       # ✅ Refine/reinforce with 120s timeout
+    refine/route.ts       # ✅ Refine/reinforce/spec with 120s timeout
     git-info/route.ts     # ✅ Dynamic git commit info
 components/
-  ProgressTracker.tsx     # ✅ Animated progress with 5-step workflow
+  ProgressTracker.tsx     # ✅ Dynamic progress with variable step workflows
   StatusBar.tsx           # ✅ Git SHA, model, Ollama status, debug toggle
   TokenCounter.tsx        # ✅ Real-time token counting with TikToken
 lib/
@@ -111,14 +116,20 @@ lib/
   history.ts             # ✅ Undo/redo + localStorage persistence  
   diff.ts                # ✅ Text diff/patch utilities
 hooks/
-  useRefine.ts           # ✅ State management for refine/reinforce ops
+  useRefine.ts           # ✅ Dynamic state management for all three modes
   useTokenCount.ts       # ✅ Real-time token counting hook
+lib/cli/                 # ✅ Complete CLI implementation with spec support
+  commands/              # ✅ Individual command implementations
+  utils/                 # ✅ CLI utilities and cross-platform support
 __tests__/               # ✅ Comprehensive test suite with 96%+ coverage
 ```
 
 ## ✨ Recent Enhancements & Features
 
 ### UI/UX Improvements
+- **🏗️ Single-Column Layout**: Streamlined input → output → controls flow for enhanced usability
+- **🔄 Three Enhancement Modes**: Refine, Reinforce, and Spec buttons with distinct visual styling
+- **📊 Dynamic Progress Tracking**: Variable step counts with "Step X of Y: [Name]" status display
 - **🎨 Green/Blue Gradient Design System**: Custom CSS properties, glass morphism effects, consistent theming
 - **📱 Fully Responsive Layout**: Fills screen at all widths, mobile-first approach, independent component scrolling  
 - **🔄 Loading Animations**: Thematic gradient spinners with counter-rotation, bounce delays, blocks interaction during processing
@@ -127,14 +138,17 @@ __tests__/               # ✅ Comprehensive test suite with 96%+ coverage
 - **👋 Welcome Modal**: Dismissible with multiple options (ESC, backdrop click, X button), localStorage persistence
 
 ### Technical Enhancements  
+- **🆕 Spec Mode**: Comprehensive coding project specification generation with intelligent technology guidance
+- **📈 Multi-Step Processing**: Dynamic step workflows (5 for refine, 4 for reinforce, 8 for spec)
 - **⏱️ Ollama Timeout Fix**: Increased from 30s to 120s to support large models (gpt-oss:20b takes 20-40s)
 - **🧹 Response Cleanup**: Automatic removal of unwanted prefixes ("**Prompt:**", "Here's the refined prompt:", etc.)
-- **🔍 Improved Prompting**: Eliminated AI technical parameters in output, better system prompts for both operations
+- **🔍 Improved Prompting**: Eliminated AI technical parameters in output, better system prompts for all operations
 - **💪 Better Reinforce**: Now makes significant content improvements vs minimal/no changes previously
 - **📊 Real-time Git Info**: Dynamic commit SHA and branch display via `/api/git-info`
 
 ### Developer Experience
-- **🧪 Comprehensive Testing**: 108 tests with high coverage, real functionality testing (not mocks)
+- **🖥️ Full CLI Support**: Complete command-line interface with spec, refine, and reinforce commands
+- **🧪 Comprehensive Testing**: 108+ tests with high coverage, real functionality testing (not mocks)
 - **📝 Enhanced Logging**: Detailed console logs for API operations, timing, and fallback usage  
 - **🔧 Type Safety**: Full TypeScript coverage with proper error handling
 - **⚡ Performance**: Optimized rendering, efficient state management, background operations
@@ -145,6 +159,9 @@ __tests__/               # ✅ Comprehensive test suite with 96%+ coverage
 |---------|--------|-------|
 | Refine Operation | ✅ Production Ready | Expands terse input into detailed prompts |
 | Reinforce Operation | ✅ Production Ready | Significantly improves existing prompts |
+| Spec Operation | ✅ Production Ready | Generates comprehensive coding project specifications |
+| Single-Column UI | ✅ Production Ready | Streamlined input → output → controls flow |
+| Dynamic Progress | ✅ Production Ready | Variable step tracking with detailed status |
 | Responsive Design | ✅ Production Ready | Works on all screen sizes |
 | Loading States | ✅ Production Ready | Animated overlays during processing |
 | Copy to Clipboard | ✅ Production Ready | One-click copying with feedback |
@@ -154,7 +171,8 @@ __tests__/               # ✅ Comprehensive test suite with 96%+ coverage
 | Welcome Modal | ✅ Production Ready | Multiple dismiss options, persistence |
 | Git Integration | ✅ Production Ready | Dynamic commit info display |
 | Error Handling | ✅ Production Ready | Graceful fallbacks, user feedback |
-| Testing Suite | ✅ Production Ready | 108 tests, high coverage |
+| CLI Support | ✅ Production Ready | Complete command-line interface with all modes |
+| Testing Suite | ✅ Production Ready | 108+ tests, high coverage |
 
 ## Process & Merge Queue
 - Use Conventional Commits; focused branches `feat/|fix/|docs/|chore/|refactor/|spike/` with optional `@claude`.

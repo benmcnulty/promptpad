@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
-export type RefineMode = 'refine' | 'reinforce'
+export type RefineMode = 'refine' | 'reinforce' | 'spec'
 
 export interface RefineRequestBody {
   mode: RefineMode
@@ -45,13 +45,50 @@ export interface RefineState {
   steps: ProgressStep[]
 }
 
-const baseSteps: ProgressStep[] = [
+const refineSteps: ProgressStep[] = [
   { id: 'validate', label: 'Validate input', status: 'pending' },
   { id: 'prepare', label: 'Prepare request', status: 'pending' },
   { id: 'call', label: 'Call model', status: 'pending' },
   { id: 'process', label: 'Process response', status: 'pending' },
   { id: 'update', label: 'Update document', status: 'pending' },
 ]
+
+const reinforceSteps: ProgressStep[] = [
+  { id: 'validate', label: 'Validate draft', status: 'pending' },
+  { id: 'call', label: 'Optimize prompt', status: 'pending' },
+  { id: 'process', label: 'Apply changes', status: 'pending' },
+  { id: 'update', label: 'Update document', status: 'pending' },
+]
+
+const specSteps: ProgressStep[] = [
+  { id: 'validate', label: 'Validate input', status: 'pending' },
+  { id: 'analyze', label: 'Analyze requirements', status: 'pending' },
+  { id: 'architecture', label: 'Design architecture', status: 'pending' },
+  { id: 'technology', label: 'Select tech stack', status: 'pending' },
+  { id: 'features', label: 'Define features', status: 'pending' },
+  { id: 'security', label: 'Security planning', status: 'pending' },
+  { id: 'process', label: 'Generate specification', status: 'pending' },
+  { id: 'update', label: 'Update document', status: 'pending' },
+]
+
+/**
+ * Gets the appropriate step configuration for a given mode
+ * 
+ * @param mode - The operation mode (refine, reinforce, or spec)
+ * @returns Array of progress steps for the mode
+ */
+function getStepsForMode(mode: RefineMode): ProgressStep[] {
+  switch (mode) {
+    case 'refine':
+      return refineSteps
+    case 'reinforce':
+      return reinforceSteps
+    case 'spec':
+      return specSteps
+    default:
+      return refineSteps
+  }
+}
 
 function advance(steps: ProgressStep[], id: string, status: StepStatus): ProgressStep[] {
   return steps.map(s => (s.id === id ? { ...s, status } : s))
@@ -64,11 +101,12 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
     loading: false,
     error: null,
     usage: null,
-    steps: baseSteps,
+    steps: refineSteps,
   })
 
-  const reset = useCallback(() => {
-    setState({ loading: false, error: null, usage: null, steps: baseSteps })
+  const reset = useCallback((mode: RefineMode = 'refine') => {
+    const modeSteps = getStepsForMode(mode)
+    setState({ loading: false, error: null, usage: null, steps: modeSteps })
   }, [])
 
   const run = useCallback(async (mode: RefineMode, text: string): Promise<RunResult | null> => {
@@ -76,11 +114,11 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
       mode,
       model,
       temperature,
-      ...(mode === 'refine' ? { input: text } : { draft: text }),
+      ...(mode === 'refine' || mode === 'spec' ? { input: text } : { draft: text }),
     }
 
-    // Start
-    let steps = baseSteps
+    // Start with mode-specific steps
+    let steps = getStepsForMode(mode)
     setState({ loading: true, error: null, usage: null, steps: advance(steps, 'validate', 'in_progress') })
 
     // Validate
@@ -90,15 +128,56 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
       return null
     }
     steps = advance(steps, 'validate', 'done')
-    steps = advance(steps, 'prepare', 'in_progress')
-    setState(prev => ({ ...prev, steps }))
-
-    // Prepare
-    try {
+    
+    // Handle different step progressions based on mode
+    if (mode === 'spec') {
+      // Spec mode has more detailed steps
+      steps = advance(steps, 'analyze', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+      
+      // Simulate multi-step processing for spec mode
+      await new Promise(resolve => setTimeout(resolve, 500)) // Brief pause for UX
+      steps = advance(steps, 'analyze', 'done')
+      steps = advance(steps, 'architecture', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+      
+      await new Promise(resolve => setTimeout(resolve, 300))
+      steps = advance(steps, 'architecture', 'done')
+      steps = advance(steps, 'technology', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+      
+      await new Promise(resolve => setTimeout(resolve, 300))
+      steps = advance(steps, 'technology', 'done')
+      steps = advance(steps, 'features', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+      
+      await new Promise(resolve => setTimeout(resolve, 300))
+      steps = advance(steps, 'features', 'done')
+      steps = advance(steps, 'security', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+      
+      await new Promise(resolve => setTimeout(resolve, 300))
+      steps = advance(steps, 'security', 'done')
+      steps = advance(steps, 'process', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+    } else if (mode === 'reinforce') {
+      // Reinforce mode skips prepare step
+      steps = advance(steps, 'call', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+    } else {
+      // Refine mode uses traditional flow
+      steps = advance(steps, 'prepare', 'in_progress')
+      setState(prev => ({ ...prev, steps }))
+      
+      // Prepare
       // Nothing heavy here yet
       steps = advance(steps, 'prepare', 'done')
       steps = advance(steps, 'call', 'in_progress')
       setState(prev => ({ ...prev, steps }))
+    }
+
+    // API call
+    try {
 
       const res = await fetch('/api/refine', {
         method: 'POST',
@@ -112,12 +191,18 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
 
       const data = await res.json() as RefineResponseBody & { systemPrompt?: string; fallbackUsed?: boolean }
 
-      steps = advance(steps, 'call', 'done')
-      steps = advance(steps, 'process', 'in_progress')
-      setState(prev => ({ ...prev, steps }))
-
+      // Complete the appropriate step based on mode
+      if (mode === 'spec') {
+        steps = advance(steps, 'process', 'done')
+      } else {
+        steps = advance(steps, 'call', 'done')
+        steps = advance(steps, 'process', 'in_progress')
+        setState(prev => ({ ...prev, steps }))
+        
+        steps = advance(steps, 'process', 'done')
+      }
+      
       const { output, usage, patch } = data
-      steps = advance(steps, 'process', 'done')
       steps = advance(steps, 'update', 'in_progress')
       setState(prev => ({ ...prev, usage, steps }))
 
@@ -125,7 +210,9 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
       setState(prev => ({ ...prev, loading: false, steps }))
       return { output, patch, systemPrompt: data.systemPrompt, fallbackUsed: data.fallbackUsed }
     } catch (err) {
-      steps = advance(steps, 'call', 'error')
+      // Handle errors for the appropriate step
+      const errorStep = mode === 'spec' ? 'process' : 'call'
+      steps = advance(steps, errorStep, 'error')
       const msg = err instanceof Error ? err.message : 'Unexpected error'
       setState({ loading: false, error: msg, usage: null, steps })
       return null

@@ -59,3 +59,51 @@ export function buildReinforcePrompt(draft: string): string {
     'Return only the reinforced prompt content—no headers, no explanations.',
   ].join('\n')
 }
+
+/**
+ * Builds the system prompt for generating detailed coding project specifications
+ * 
+ * Same logic as the web application's buildSpecPrompt function
+ * to ensure consistent project specification behavior.
+ * 
+ * @param input - Brief project description or requirements
+ * @returns System prompt for the spec operation
+ */
+export function buildSpecPrompt(input: string): string {
+  return [
+    'You are Promptpad Spec, a software project specification expert. Transform the INPUT into a comprehensive, production-ready project specification with intelligent technology guidance.',
+    '',
+    'Create a detailed specification that includes:',
+    '',
+    '## Analysis & Recommendations',
+    '- Analyze the project scope and complexity',
+    '- Recommend appropriate technology stack based on requirements',
+    '- Suggest architecture patterns (monolith, microservices, serverless)',
+    '- Identify key technical challenges and solutions',
+    '',
+    '## Specification Structure',
+    '- **Overview**: Clear project summary and objectives',
+    '- **Technology Stack**: Frontend, backend, database, deployment technologies',
+    '- **Architecture**: System design, data flow, component interactions',
+    '- **Features**: Core functionality broken into implementable modules',
+    '- **Database Design**: Schema considerations and relationships',
+    '- **API Design**: Endpoint structure and data contracts',
+    '- **Security**: Authentication, authorization, data protection',
+    '- **Performance**: Scalability considerations and optimization strategies',
+    '- **Testing Strategy**: Unit, integration, and E2E testing approaches',
+    '- **Deployment**: CI/CD pipeline and infrastructure requirements',
+    '',
+    '## Guidelines',
+    '- Use modern, well-supported technologies',
+    '- Prioritize developer experience and maintainability',
+    '- Include specific tool and version recommendations',
+    '- Consider project scale and team size',
+    '- Provide rationale for major technology choices',
+    '- Structure as actionable implementation roadmap',
+    '- No meta-commentary about the specification itself',
+    '',
+    'INPUT: ' + input,
+    '',
+    'Generate the comprehensive project specification:',
+  ].join('\n')
+}

@@ -21,6 +21,7 @@
 import { program } from 'commander'
 import { refineCommand } from './commands/refine'
 import { reinforceCommand } from './commands/reinforce'
+import { specCommand } from './commands/spec'
 import { getVersion } from './utils/version'
 
 /**
@@ -57,6 +58,15 @@ async function main() {
       .option('-o, --output <file>', 'Output file path (default: stdout)')
       .option('--copy', 'Copy result to clipboard')
       .action(reinforceCommand)
+
+    // Spec command - generate project specifications
+    program
+      .command('spec')
+      .description('Generate comprehensive coding project specifications with technology guidance')
+      .argument('<input>', 'Brief project description or requirements')
+      .option('-o, --output <file>', 'Output file path (default: stdout)')
+      .option('--copy', 'Copy result to clipboard')
+      .action(specCommand)
 
     // Interactive mode for multiple operations
     program

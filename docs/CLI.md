@@ -90,6 +90,23 @@ promptpad reinforce "$(cat my-draft-prompt.md)" --output improved-prompt.md
 - `-o, --output <file>` - Save reinforced prompt to file  
 - `--copy` - Copy result to system clipboard
 
+### Spec Command
+
+**Purpose**: Generate comprehensive coding project specifications with intelligent technology guidance
+
+```bash
+promptpad spec <input> [options]
+
+# Examples
+promptpad spec "build a task management app"
+promptpad spec "e-commerce platform for small businesses" --model llama3.1:8b
+promptpad spec "real-time chat application" --temperature 0.1 --verbose --copy
+```
+
+**Options**:
+- `-o, --output <file>` - Save project specification to file
+- `--copy` - Copy result to system clipboard
+
 ## 🔧 Installation Options
 
 ### Local Development
@@ -158,7 +175,22 @@ Generate comprehensive code review prompts:
 promptpad refine "review this code" --temperature 0.1 > code-review-template.md
 ```
 
-### 4. Batch Processing
+### 4. Project Specifications
+
+Generate detailed technical specifications for coding projects:
+
+```bash
+# Web application specification
+promptpad spec "social media dashboard for small businesses" --output dashboard-spec.md
+
+# Mobile app specification  
+promptpad spec "fitness tracking app with wearable integration" --copy
+
+# API service specification
+promptpad spec "REST API for inventory management system" --verbose --output inventory-api-spec.md
+```
+
+### 5. Batch Processing
 
 Process multiple prompts efficiently:
 
