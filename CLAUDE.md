@@ -4,9 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Promptpad is a **fully functional** local-first prompt drafting tool built with Next.js 15.4.6 + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The app implements a multi-mode workflow: Refine (expand prompts), Reinforce (optimize prompts), and Spec (generate coding project specifications) plus an internal heuristic + optional low‑temperature cleanup pass that normalizes meta-heavy raw outputs from smaller models.
+Promptpad is a **fully functional** multi-page local-first prompt drafting and visualization platform built with Next.js 15.4.6 + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The platform features persistent header navigation and shared infrastructure for multiple tools:
 
-**Status**: ✅ **PRODUCTION READY** - Fully implemented with comprehensive testing, responsive design, loading animations, debugging tools, and optimized prompting.
+- **Prompt Enhancer**: Multi-mode workflow (Refine, Reinforce, Spec) with comprehensive UI/UX enhancements
+- **Dimensional Visualizer**: Coming soon - Data visualization and analysis tool
+
+The Prompt Enhancer implements a multi-mode workflow: Refine (expand prompts), Reinforce (optimize prompts), and Spec (generate coding project specifications) plus an internal heuristic + optional low‑temperature cleanup pass that normalizes meta-heavy raw outputs from smaller models.
+
+**Status**: ✅ **PRODUCTION READY** - Multi-page architecture implemented with persistent navigation, shared state management, comprehensive testing, responsive design, loading animations, debugging tools, and optimized prompting.
 
 ## 📚 Developer Documentation
 
@@ -94,18 +99,28 @@ When source code is implemented, use these commands:
 
 ## Architecture & File Structure
 
-**Current implementation** (fully functional):
+**Current implementation** (fully functional multi-page platform):
 ```
 app/
-  page.tsx                # ✅ Single-column responsive UI with three enhancement modes
+  layout.tsx              # ✅ Root layout with shared providers and persistent header/footer
+  page.tsx                # ✅ Root redirect to /prompt-enhancer
+  prompt-enhancer/
+    page.tsx              # ✅ Single-column responsive UI with three enhancement modes
+  dimensional-visualizer/
+    page.tsx              # ✅ Coming soon page with development animations
   globals.css             # ✅ Green/blue gradient design system
   api/
     models/route.ts       # ✅ Lists Ollama models with health checking
     refine/route.ts       # ✅ Refine/reinforce/spec with 120s timeout
     git-info/route.ts     # ✅ Dynamic git commit info
 components/
+  AppHeader.tsx           # ✅ Persistent navigation header with dynamic routing
+  AppFooter.tsx           # ✅ Status bar with debug terminal integration
+  DebugProvider.tsx       # ✅ Shared debug state management across pages
+  WelcomeProvider.tsx     # ✅ Shared welcome modal and localStorage management
+  shared/
+    DebugTerminal.tsx     # ✅ Reusable debug terminal component
   ProgressTracker.tsx     # ✅ Dynamic progress with variable step workflows
-  StatusBar.tsx           # ✅ Git SHA, model, Ollama status, debug toggle
   TokenCounter.tsx        # ✅ Real-time token counting with TikToken
 lib/
   ollama.ts              # ✅ Ollama client with error handling & timeouts
@@ -120,13 +135,20 @@ hooks/
 lib/cli/                 # ✅ Complete CLI implementation with spec support
   commands/              # ✅ Individual command implementations
   utils/                 # ✅ CLI utilities and cross-platform support
-__tests__/               # ✅ Comprehensive test suite with 96%+ coverage
+__tests__/               # ✅ Comprehensive test suite with high coverage
 ```
 
 ## ✨ Recent Enhancements & Features
 
+### Multi-Page Architecture
+- **🏗️ Multi-Page Platform**: Scalable architecture with persistent header navigation and footer
+- **🔄 Shared State Management**: DebugProvider, WelcomeProvider, ModelProvider, ThemeProvider work across all pages
+- **📱 Navigation System**: Tab-style navigation between tools with active state detection
+- **🎨 Persistent UI**: Header, footer, debug terminal, model selection work on all pages
+- **🚀 Future-Ready**: Infrastructure in place for new tools like Dimensional Visualizer
+
 ### UI/UX Improvements
-- **🏗️ Single-Column Layout**: Streamlined input → output → controls flow for enhanced usability
+- **🏗️ Single-Column Layout**: Streamlined input → output → controls flow for enhanced usability (Prompt Enhancer)
 - **🔄 Three Enhancement Modes**: Refine, Reinforce, and Spec buttons with distinct visual styling
 - **📊 Dynamic Progress Tracking**: Variable step counts with "Step X of Y: [Name]" status display
 - **🎨 Green/Blue Gradient Design System**: Custom CSS properties, glass morphism effects, consistent theming
@@ -156,19 +178,24 @@ __tests__/               # ✅ Comprehensive test suite with 96%+ coverage
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Refine | ✅ | Expansion + conditional cleanup normalization |
-| Reinforce | ✅ | Precision edits + patch + cleanup normalization |
-| Spec | ✅ | Focused project spec + cleanup normalization |
-| Dual-Layer Cleanup | ✅ | Heuristic regex + semantic low-temp pass |
-| Token Counting | ✅ | Real-time via TikToken + LRU cache |
-| Debug Terminal | ✅ | System prompt & usage visibility |
-| Ollama Integration | ✅ | 120s soft timeout, health checks |
-| Error Handling | ✅ | Deterministic fallbacks & structured errors |
-| CLI | ✅ | Parity with UI modes |
-| Theming | ✅ | Accent + dark/light, persisted |
-| Tests | ✅ | 150+ passing suites |
+| **Multi-Page Architecture** | ✅ Production Ready | Persistent navigation, shared state management |
+| **Prompt Enhancer Tool** | ✅ Production Ready | Complete functionality with all three modes |
+| **Dimensional Visualizer** | 🚧 In Development | Prototype interface with 3D vector visualization mockup |
+| **Shared Navigation** | ✅ Production Ready | Header with dynamic routing and contrast fixes |
+| **Shared Debug Terminal** | ✅ Production Ready | Works across all pages with persistent state |
+| **Shared Providers** | ✅ Production Ready | Debug, Welcome, Model, Theme providers global |
+| Refine Operation | ✅ Production Ready | Expansion + conditional cleanup normalization |
+| Reinforce Operation | ✅ Production Ready | Precision edits + patch + cleanup normalization |
+| Spec Operation | ✅ Production Ready | Focused project spec + cleanup normalization |
+| Dual-Layer Cleanup | ✅ Production Ready | Heuristic regex + semantic low-temp pass |
+| Token Counting | ✅ Production Ready | Real-time via TikToken + LRU cache |
+| Ollama Integration | ✅ Production Ready | 120s soft timeout, health checks |
+| Error Handling | ✅ Production Ready | Deterministic fallbacks & structured errors |
 | CLI Support | ✅ Production Ready | Complete command-line interface with all modes |
-| Testing Suite | ✅ Production Ready | 108+ tests, high coverage |
+| Theming System | ✅ Production Ready | Accent + dark/light, persisted across pages |
+| Testing Suite | ✅ Production Ready | High coverage with updated architectural tests |
+| UI Contrast | ✅ Production Ready | Enhanced text emboss effects for better separation |
+| Server Redirects | ✅ Production Ready | Proper 307 redirects from root to /prompt-enhancer |
 
 ## Process & Merge Queue
 - Use Conventional Commits; focused branches `feat/|fix/|docs/|chore/|refactor/|spike/` with optional `@claude`.

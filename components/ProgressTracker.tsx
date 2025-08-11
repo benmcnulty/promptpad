@@ -38,7 +38,7 @@ export default function ProgressTracker({ steps, className = '' }: ProgressTrack
       <div className="text-center min-h-[1.5rem] flex items-center justify-center">
         {isProcessing ? (
           <div className="flex flex-col items-center space-y-1">
-            <span className="text-base font-semibold text-slate-900 tracking-wide">
+            <span className="text-base font-semibold text-slate-900 tracking-wide text-emboss">
               Step {activeStepIndex + 1} of {steps.length}
             </span>
             <span className="text-sm font-medium text-slate-700 bg-white/40 px-2 py-1 rounded-md backdrop-blur-sm border border-white/30">
@@ -48,23 +48,23 @@ export default function ProgressTracker({ steps, className = '' }: ProgressTrack
         ) : isComplete ? (
           <div className="flex items-center space-x-2">
             <CheckIcon className="w-5 h-5 text-emerald-600" />
-            <span className="text-base font-semibold text-emerald-700 tracking-wide">
+            <span className="text-base font-semibold text-emerald-700 tracking-wide text-emboss">
               All steps completed ({steps.length}/{steps.length})
             </span>
           </div>
         ) : hasError ? (
           <div className="flex items-center space-x-2">
             <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
-            <span className="text-base font-semibold text-red-700 tracking-wide">
+            <span className="text-base font-semibold text-red-700 tracking-wide text-emboss">
               Error in process ({completedSteps}/{steps.length} completed)
             </span>
           </div>
         ) : steps.length > 0 ? (
-          <span className="text-base font-medium text-slate-600 tracking-wide">
+          <span className="text-base font-medium text-slate-600 tracking-wide text-emboss-subtle">
             Ready to start ({steps.length} steps)
           </span>
         ) : (
-          <span className="text-base font-medium text-slate-600 tracking-wide">
+          <span className="text-base font-medium text-slate-600 tracking-wide text-emboss-subtle">
             Choose an enhancement mode to begin
           </span>
         )}
@@ -82,7 +82,7 @@ export default function ProgressTracker({ steps, className = '' }: ProgressTrack
             />
           </div>
           <div className="bg-white/50 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/40 shadow-soft">
-            <span className="text-sm font-bold text-slate-800 tabular-nums tracking-wider">
+            <span className="text-sm font-bold text-slate-800 tabular-nums tracking-wider text-emboss-subtle">
               {completedSteps}/{steps.length}
             </span>
           </div>
