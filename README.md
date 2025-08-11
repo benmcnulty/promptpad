@@ -169,6 +169,12 @@ promptpad reinforce "Draft prompt content here" --output refined.md --copy
 
 See `docs/CLI.md` for full usage and troubleshooting.
 
+### Integrations
+
+- Claude (pass refined prompt as argument):
+  - `claude "$(promptpad refine 'Build a todo app.')"`
+  - With variables: `TASK="Draft contribution guidelines" && claude "$(promptpad refine \"$TASK\")"`
+
 ---
 
 ## 🔧 Configuration

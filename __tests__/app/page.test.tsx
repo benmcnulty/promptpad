@@ -32,11 +32,11 @@ describe('Home Page', () => {
     
     // Check for input and output sections
     expect(screen.getByRole('heading', { name: 'Input Draft', level: 2 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Refined Output', level: 2 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Enhanced Output', level: 2 })).toBeInTheDocument()
     
     // Check for text areas with proper labels
     expect(screen.getByLabelText('Prompt input area')).toBeInTheDocument()
-    expect(screen.getByLabelText('Prompt output area')).toBeInTheDocument()
+    expect(screen.getByLabelText('Enhanced prompt output area')).toBeInTheDocument()
   })
 
   it('displays interactive text areas and disabled action buttons', async () => {
@@ -46,12 +46,12 @@ describe('Home Page', () => {
     
     // Text areas should be enabled 
     expect(screen.getByLabelText('Prompt input area')).toBeEnabled()
-    expect(screen.getByLabelText('Prompt output area')).toBeEnabled()
+    expect(screen.getByLabelText('Enhanced prompt output area')).toBeEnabled()
     
     // Refine button should be disabled when input is empty
-    expect(screen.getByLabelText('Refine prompt')).toBeDisabled()
-    expect(screen.getByLabelText('Undo last change')).toBeDisabled()
-    expect(screen.getByLabelText('Reinforce edited prompt')).toBeDisabled()
+    expect(screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')).toBeDisabled()
+    expect(screen.getByLabelText('Reinforce prompt - Optimize and tighten existing prompts')).toBeDisabled()
+    expect(screen.getByLabelText('Spec prompt - Generate comprehensive coding project specifications')).toBeDisabled()
   })
 
   it('shows token counters', () => {
@@ -100,8 +100,8 @@ describe('Home Page', () => {
     })
     
     // Check that main action buttons have proper focus styles
-    const refineButton = screen.getByLabelText('Refine prompt')
-    const reinforceButton = screen.getByLabelText('Reinforce edited prompt')
+    const refineButton = screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')
+    const reinforceButton = screen.getByLabelText('Reinforce prompt - Optimize and tighten existing prompts')
     expect(refineButton).toHaveClass('focus-visible')
     expect(reinforceButton).toHaveClass('focus-visible')
   })

@@ -1,17 +1,21 @@
-# LLM Refine and Reinforce Processes
+# LLM Processes: Refine, Reinforce, and Spec
 
 ## Overview
 
-Promptpad implements a sophisticated **two-pass LLM workflow** designed to transform terse instructions into professional, copy-ready prompts. This document provides comprehensive technical details on both processes to enable team optimization and understanding.
+Promptpad implements a sophisticated **multi-modal LLM workflow** designed to transform terse instructions into professional, copy-ready prompts and comprehensive project specifications. This document provides comprehensive technical details on all three processes to enable team optimization and understanding.
 
 ## Architecture Summary
 
 ```
-User Input → Refine Process → Structured Draft → [User Edit] → Reinforce Process → Final Prompt
-     ↓               ↓                ↓                          ↓              ↓
-  Validation    System Prompt    Response Clean         System Prompt    Patch Generation
-     ↓               ↓                ↓                          ↓              ↓
-  Ollama API      Generation      UI Display             Generation       UI Update
+User Input → Process Selection → LLM Generation → Response Cleaning → UI Update
+     ↓              ↓                    ↓               ↓              ↓
+  Validation   System Prompt      Ollama API     Meta-commentary    Patch/Display
+     ↓              ↓                    ↓          Removal             ↓
+   Refine     "Expand terse to      Generation       Clean Text      Final Output
+Reinforce    detailed prompts"         ↓               ↓
+   Spec      or "Optimize clarity"  Raw Response  Structured Result
+            or "Generate project
+               specifications"
 ```
 
 ## Core Implementation Files
@@ -170,6 +174,114 @@ return NextResponse.json({ output: cleanedText, usage, patch, systemPrompt: prom
   fallbackUsed?: boolean   // Development fallback indicator
 }
 ```
+
+---
+
+## Spec Process (Generate Project Specifications)
+
+### Purpose
+Transform brief project ideas into comprehensive, technical specifications with intelligent technology guidance, architecture recommendations, and detailed implementation roadmaps.
+
+### System Prompt Construction
+
+**Location**: `app/api/refine/route.ts` (spec mode handling)
+
+```typescript
+function buildSpecPrompt(input: string): string {
+  return [
+    'You are Promptpad, a technical specification expert. Transform the INPUT into a comprehensive coding project specification.',
+    '',
+    'Generate a detailed technical specification that includes:',
+    '',
+    '**Project Overview**',
+    '- Clear problem statement and solution approach',
+    '- Target audience and use cases',
+    '- Core functionality and features',
+    '',
+    '**Technical Architecture**',
+    '- System architecture and component design',
+    '- Technology stack recommendations with justification',
+    '- Database design and data flow',
+    '- API design and integration points',
+    '',
+    '**Implementation Roadmap**',
+    '- Development phases and milestones',
+    '- Feature prioritization and dependencies',
+    '- Estimated complexity and timeline guidance',
+    '',
+    '**Development Considerations**',
+    '- Security requirements and best practices',
+    '- Performance and scalability considerations',
+    '- Testing strategy and quality assurance',
+    '- Deployment and DevOps requirements',
+    '',
+    'Focus on practical, actionable guidance. Include specific technology choices with reasons.',
+    'Avoid generic advice - provide concrete recommendations based on the project requirements.',
+    '',
+    'INPUT: ' + input,
+    '',
+    'Generate the comprehensive project specification:',
+  ].join('\n')
+}
+```
+
+### Key Characteristics
+
+1. **Comprehensive Coverage**: Addresses all aspects of software development from architecture to deployment
+2. **Technology Guidance**: Provides specific technology stack recommendations with justification
+3. **Structured Output**: Organizes information in clear, actionable sections
+4. **Practical Focus**: Emphasizes implementable solutions over theoretical concepts
+5. **Timeline Awareness**: Includes development phases and complexity estimates
+
+### Processing Pipeline
+
+```typescript
+// Extended step progression for spec generation
+const specSteps: ProgressStep[] = [
+  { id: 'validate', label: 'Validate input', status: 'pending' },
+  { id: 'analyze', label: 'Analyze requirements', status: 'pending' },
+  { id: 'architecture', label: 'Design architecture', status: 'pending' },
+  { id: 'technology', label: 'Select tech stack', status: 'pending' },
+  { id: 'features', label: 'Define features', status: 'pending' },
+  { id: 'security', label: 'Security planning', status: 'pending' },
+  { id: 'process', label: 'Generate specification', status: 'pending' },
+  { id: 'update', label: 'Update document', status: 'pending' },
+]
+```
+
+### Response Format
+
+```typescript
+{
+  output: string,           // Complete project specification
+  usage: UsageStats,       // Token consumption metrics
+  systemPrompt?: string,   // System prompt used (debug)
+  fallbackUsed?: boolean   // Development fallback indicator
+}
+```
+
+### Enhanced Response Cleaning for Spec
+
+**Location**: `app/api/refine/route.ts` (shared cleaning logic)
+
+```typescript
+// Spec responses often include formatting that needs preservation
+const cleanedText = text
+  .replace(/^\*\*Project Specification:\*\*\s*/i, '')
+  .replace(/^Specification:\s*/i, '')
+  .replace(/^# (Project )?Specification\s*/i, '')
+  .replace(/^Here's (a )?comprehensive (project )?specification:\s*/i, '')
+  .replace(/^"([\s\S]*)"$/, '$1')
+  .trim()
+```
+
+### Quality Characteristics
+
+1. **Comprehensive Scope**: Covers technical, business, and operational aspects
+2. **Technology Alignment**: Matches technology choices to project requirements
+3. **Actionable Content**: Provides specific, implementable guidance
+4. **Structured Organization**: Uses consistent formatting for easy navigation
+5. **Practical Timeline**: Includes realistic development phase estimates
 
 ---
 

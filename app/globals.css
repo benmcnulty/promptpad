@@ -21,6 +21,8 @@
   --primary-end: #334155;   /* slate-700 */
   --secondary-start: #94a3b8; /* slate-400 */
   --secondary-end: #64748b;   /* slate-500 */
+  --tertiary-start: #8b5cf6;   /* violet-500 - fallback */
+  --tertiary-end: #6b21a8;     /* violet-800 - fallback */
   
   /* Surface colors */
   --surface-primary: #f0fdf4;   /* green-50 */
@@ -72,6 +74,8 @@
   --primary-end: var(--accent-hue-emerald-end);
   --secondary-start: #0d9488; /* teal-600 */
   --secondary-end: var(--accent-hue-emerald-start);
+  --tertiary-start: var(--accent-hue-emerald-start); /* emerald-500 */
+  --tertiary-end: #047857;   /* emerald-700 */
 }
 [data-accent="sapphire"] {
   /* Arctic aurora: cyan to deep blue */
@@ -79,6 +83,8 @@
   --primary-end: var(--accent-hue-sapphire-end);
   --secondary-start: #0891b2; /* cyan-600 */
   --secondary-end: var(--accent-hue-sapphire-start);
+  --tertiary-start: var(--accent-hue-sapphire-start); /* sky-500 */
+  --tertiary-end: #075985;   /* sky-800 */
 }
 [data-accent="violet"] {
   /* Twilight magic: indigo to violet */
@@ -86,6 +92,8 @@
   --primary-end: var(--accent-hue-violet-end);
   --secondary-start: #4f46e5; /* indigo-600 */
   --secondary-end: var(--accent-hue-violet-start);
+  --tertiary-start: var(--accent-hue-violet-start); /* violet-500 */
+  --tertiary-end: #6b21a8;   /* violet-800 */
 }
 [data-accent="coral"] {
   /* Sunset glow: pink to orange */
@@ -93,6 +101,8 @@
   --primary-end: var(--accent-hue-coral-end);
   --secondary-start: #db2777; /* pink-600 */
   --secondary-end: var(--accent-hue-coral-start);
+  --tertiary-start: var(--accent-hue-coral-start); /* orange-500 */
+  --tertiary-end: #c2410c;   /* orange-700 */
 }
 [data-accent="golden"] {
   /* Dawn light: amber to yellow */
@@ -100,6 +110,8 @@
   --primary-end: var(--accent-hue-golden-end);
   --secondary-start: #d97706; /* amber-600 */
   --secondary-end: var(--accent-hue-golden-start);
+  --tertiary-start: var(--accent-hue-golden-start); /* yellow-500 */
+  --tertiary-end: #a16207;   /* yellow-700 */
 }
 
 body {
@@ -120,6 +132,10 @@ body {
   
   .gradient-secondary {
     background: linear-gradient(135deg, var(--secondary-start) 0%, var(--secondary-end) 100%);
+  }
+  
+  .gradient-tertiary {
+    background: linear-gradient(135deg, var(--tertiary-start) 0%, var(--tertiary-end) 100%);
   }
   
   .gradient-surface {
@@ -451,6 +467,17 @@ body {
     }
   }
   
+  @keyframes fadeInDown {
+    from { 
+      opacity: 0; 
+      transform: translateY(-10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+  
   @keyframes scaleIn {
     from { 
       opacity: 0; 
@@ -485,6 +512,10 @@ body {
   
   .animate-fade-in-up {
     animation: fadeInUp 0.4s ease-out;
+  }
+  
+  .animate-fade-in-down {
+    animation: fadeInDown 0.4s ease-out;
   }
   
   .animate-scale-in {

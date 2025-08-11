@@ -77,7 +77,7 @@ describe('POST /api/refine (contract)', () => {
     expect(data.output).toBeDefined()
     expect(typeof data.output).toBe('string')
     expect(data.output.length).toBeGreaterThan(0)
-    expect(data.output).toContain('Project Specification')
+    expect(data.output).toContain('Development Plan')
     expect(data.output).toContain('Technology Stack')
     expect(data.usage).toEqual({
       input_tokens: expect.any(Number),

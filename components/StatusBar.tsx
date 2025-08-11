@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@/components/ThemeProvider'
+import ThemeDropdown from '@/components/ThemeDropdown'
 
 interface StatusBarProps {
   className?: string
@@ -15,7 +16,7 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
   const inFlight = useRef<AbortController | null>(null)
   const intervalId = useRef<number | null>(null)
   const mounted = useRef<boolean>(false)
-  const { theme, toggleTheme, accent, setAccent, accents } = useTheme()
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     // Get git SHA from build time or runtime
@@ -150,19 +151,8 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
           <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
         </button>
 
-        {/* Accent select */}
-        <label className="sr-only" htmlFor="accent-select">Accent color</label>
-        <select
-          id="accent-select"
-          value={accent}
-            onChange={e => setAccent(e.target.value as any)}
-          className="select-reset bg-white/60 text-slate-600 hover:bg-white/80 border border-white/40 px-2 py-1.5 text-xs rounded-md font-medium focus-visible"
-          aria-label="Select accent color"
-        >
-          {accents.map(a => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
+        {/* Theme accent dropdown */}
+        <ThemeDropdown />
 
         {/* Debug Toggle */}
         {onDebugToggle && (

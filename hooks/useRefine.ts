@@ -101,7 +101,7 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
     loading: false,
     error: null,
     usage: null,
-    steps: refineSteps,
+    steps: [],
   })
 
   const reset = useCallback((mode: RefineMode = 'refine') => {

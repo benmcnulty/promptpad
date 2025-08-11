@@ -24,16 +24,16 @@ describe('Home Page - New Features', () => {
       const user = userEvent.setup()
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      const outputTextarea = screen.getByLabelText('Prompt output area')
+      const outputTextarea = screen.getByLabelText('Enhanced prompt output area')
       await user.type(outputTextarea, 'Test output content')
       
-      expect(screen.getByRole('button', { name: 'Copy refined prompt to clipboard' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Copy enhanced prompt to clipboard' })).toBeInTheDocument()
     })
 
     it('does not show copy button when output is empty', () => {
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      expect(screen.queryByRole('button', { name: 'Copy refined prompt to clipboard' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Copy enhanced prompt to clipboard' })).not.toBeInTheDocument()
     })
 
     it('shows success feedback when copy button is clicked', async () => {
@@ -42,15 +42,15 @@ describe('Home Page - New Features', () => {
       
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      const outputTextarea = screen.getByLabelText('Prompt output area')
+      const outputTextarea = screen.getByLabelText('Enhanced prompt output area')
       await user.type(outputTextarea, 'Test prompt to copy')
       
       // Wait for React state to update and copy button to appear
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Copy refined prompt to clipboard' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Copy enhanced prompt to clipboard' })).toBeInTheDocument()
       })
       
-      const copyButton = screen.getByRole('button', { name: 'Copy refined prompt to clipboard' })
+      const copyButton = screen.getByRole('button', { name: 'Copy enhanced prompt to clipboard' })
       
       // Click the copy button
       await user.click(copyButton)
@@ -81,7 +81,7 @@ describe('Home Page - New Features', () => {
       // Mock the refine hook to simulate loading state
       // Note: This would require mocking the useRefine hook in a real implementation
       // For now, we just verify the loading overlay structure exists in the component
-      const outputArea = screen.getByLabelText('Prompt output area').parentElement
+      const outputArea = screen.getByLabelText('Enhanced prompt output area').parentElement
       expect(outputArea).toHaveClass('relative')
     })
 
@@ -90,7 +90,7 @@ describe('Home Page - New Features', () => {
       // Currently verifying the conditional structure exists
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      const outputTextarea = screen.getByLabelText('Prompt output area')
+      const outputTextarea = screen.getByLabelText('Enhanced prompt output area')
       expect(outputTextarea).toBeInTheDocument()
     })
   })
@@ -191,20 +191,20 @@ describe('Home Page - New Features', () => {
     it('renders with responsive layout classes', () => {
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      // Main container should have responsive flex classes
+      // Main container should have single-column responsive flex classes
       const mainElement = screen.getByRole('main')
-      expect(mainElement).toHaveClass('flex-col', 'lg:flex-row')
+      expect(mainElement).toHaveClass('flex-col', 'max-w-7xl', 'mx-auto')
     })
 
     it('has responsive token counter layout', () => {
   render(<ThemeProvider><Home /></ThemeProvider>)
       
       const tokenCounters = screen.getAllByLabelText(/Tokens:/)
+      expect(tokenCounters).toHaveLength(2) // One for input, one for output
+      
+      // Token counters should be present and responsive
       tokenCounters.forEach(counter => {
-        // Token counters are in containers with responsive flex classes
-        const container = counter.closest('div[class*="sm:flex-row"]')
-        expect(container).not.toBeNull()
-        expect(container).toHaveClass('flex', 'flex-col', 'sm:flex-row')
+        expect(counter).toHaveClass('flex', 'items-center')
       })
     })
   })
@@ -214,7 +214,7 @@ describe('Home Page - New Features', () => {
       const user = userEvent.setup()
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      const refineButton = screen.getByLabelText('Refine prompt')
+      const refineButton = screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')
       expect(refineButton).toBeDisabled()
       
       const inputTextarea = screen.getByLabelText('Prompt input area')
@@ -229,10 +229,10 @@ describe('Home Page - New Features', () => {
       const user = userEvent.setup()
   render(<ThemeProvider><Home /></ThemeProvider>)
       
-      const reinforceButton = screen.getByLabelText('Reinforce edited prompt')
+      const reinforceButton = screen.getByLabelText('Reinforce prompt - Optimize and tighten existing prompts')
       expect(reinforceButton).toBeDisabled()
       
-      const outputTextarea = screen.getByLabelText('Prompt output area')
+      const outputTextarea = screen.getByLabelText('Enhanced prompt output area')
       await user.type(outputTextarea, 'Test output')
       
       await waitFor(() => {

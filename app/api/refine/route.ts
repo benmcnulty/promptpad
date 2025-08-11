@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       } else {
         const input = body.input as string
         const prompt = buildSpecPrompt(input)
-        const output = `# Project Specification\n\n**Input**: ${input}\n\n## Overview\nDetailed project specification for: ${input}\n\n## Technology Stack\n- Frontend: React + TypeScript\n- Backend: Node.js + Express\n- Database: PostgreSQL\n\n## Architecture\nModular monolith with clean separation of concerns.`
+        const output = `# ${input} - Development Plan\n\n## Project Overview\nA focused development specification for building: ${input}\n\n**Core Goals**: Create a functional, user-friendly application\n**Approach**: Start simple, use proven technologies\n\n## Recommended Technology Stack\n- **Frontend**: React + TypeScript\n- **Backend**: Node.js + Express  \n- **Database**: PostgreSQL\n- **Styling**: Tailwind CSS\n\n## Implementation Roadmap\n\n**Phase 1**: Foundation\n- Set up project structure\n- Implement basic functionality\n- Create user interface\n\n**Phase 2**: Enhancement\n- Add advanced features\n- Improve user experience\n- Deploy and test\n\n## Key Considerations\n- Keep code simple and maintainable\n- Focus on user needs first\n- Use established libraries and patterns`
         return NextResponse.json({
           output,
           usage: { input_tokens: input.length, output_tokens: output.length },
@@ -198,7 +198,7 @@ export async function POST(req: Request) {
         } else {
           const input = body.input as string
           const prompt = buildSpecPrompt(input)
-          const output = `[DEV FALLBACK] Here's your project specification for "${input}":\n\n# ${input} - Project Specification\n\n## Overview\nComprehensive specification for building a modern ${input} application with best practices and scalable architecture.\n\n## Technology Stack\n**Frontend**: React 18+ with TypeScript, Tailwind CSS for styling\n**Backend**: Node.js with Express or Fastify framework\n**Database**: PostgreSQL for relational data, Redis for caching\n**DevOps**: Docker containerization, GitHub Actions CI/CD\n**Testing**: Jest for unit tests, Playwright for E2E testing\n\n## Architecture\n### Application Structure\n- **Modular monolith** initially, microservices ready\n- **Clean architecture** with domain separation\n- **API-first design** with OpenAPI documentation\n- **Event-driven patterns** for scalability\n\n### Key Features\n- User authentication and authorization\n- RESTful API with proper error handling\n- Real-time capabilities with WebSocket support\n- Comprehensive logging and monitoring\n- Automated testing and deployment pipeline\n\n## Development Guidelines\n- TypeScript strict mode enabled\n- ESLint + Prettier for code consistency\n- Git hooks for quality gates\n- Comprehensive documentation\n- Security best practices implemented`
+          const output = `[DEV FALLBACK] Here's your project specification for "${input}":\n\n# ${input} - Development Plan\n\n## Project Overview\nA modern ${input} application focused on user experience and maintainable code.\n\n**Core Goals**: Build a functional, user-friendly ${input} that solves the main user needs\n**Target Users**: Primary users who need ${input} functionality\n**Key Constraints**: Keep it simple, use proven technologies\n\n## Recommended Approach\n\n**Technology Stack**:\n- Frontend: React + TypeScript for reliability\n- Backend: Node.js + Express (simple and proven)\n- Database: PostgreSQL for data persistence\n- Styling: Tailwind CSS for rapid development\n\n**Architecture Pattern**: Start with a simple monolithic structure\n- Single codebase for faster development\n- Clear separation between frontend and backend\n- RESTful API design\n\n**Core Features to Build First**:\n1. User authentication (login/signup)\n2. Main ${input} functionality\n3. Basic user interface\n4. Data persistence\n\n## Implementation Guidance\n\n**Phase 1: Foundation** (Week 1-2)\n- Set up project structure\n- Implement basic authentication\n- Create database schema\n- Build core API endpoints\n\n**Phase 2: Core Features** (Week 3-4)\n- Develop main ${input} functionality\n- Build user interface components\n- Connect frontend to API\n- Add basic error handling\n\n**Phase 3: Polish** (Week 5+)\n- Improve user experience\n- Add testing\n- Deploy to production\n- Gather user feedback\n\n**Key Technical Considerations**:\n- Use environment variables for configuration\n- Implement proper error handling\n- Add input validation\n- Consider mobile responsiveness\n\n**Recommended Libraries**:\n- React Query for data fetching\n- React Router for navigation\n- Zod for schema validation\n- Prisma for database ORM`
           
           return NextResponse.json({
             output,
@@ -273,39 +273,39 @@ function buildReinforcePrompt(draft: string): string {
  */
 function buildSpecPrompt(input: string): string {
   return [
-    'You are Promptpad Spec, a software project specification expert. Transform the INPUT into a comprehensive, production-ready project specification with intelligent technology guidance.',
+    'You are Promptpad Spec, a project specification assistant. Transform the INPUT into a clear, actionable development prompt with practical technology guidance.',
     '',
-    'Create a detailed specification that includes:',
+    'Create a focused specification that includes:',
     '',
-    '## Analysis & Recommendations',
-    '- Analyze the project scope and complexity',
-    '- Recommend appropriate technology stack based on requirements',
-    '- Suggest architecture patterns (monolith, microservices, serverless)',
-    '- Identify key technical challenges and solutions',
+    '**Project Overview**',
+    '- Clear description of what needs to be built',
+    '- Primary user goals and key functionality',
+    '- Project scope and main constraints',
     '',
-    '## Specification Structure',
-    '- **Overview**: Clear project summary and objectives',
-    '- **Technology Stack**: Frontend, backend, database, deployment technologies',
-    '- **Architecture**: System design, data flow, component interactions',
-    '- **Features**: Core functionality broken into implementable modules',
-    '- **Database Design**: Schema considerations and relationships',
-    '- **API Design**: Endpoint structure and data contracts',
-    '- **Security**: Authentication, authorization, data protection',
-    '- **Performance**: Scalability considerations and optimization strategies',
-    '- **Testing Strategy**: Unit, integration, and E2E testing approaches',
-    '- **Deployment**: CI/CD pipeline and infrastructure requirements',
+    '**Recommended Approach**',
+    '- Suggest appropriate technology stack (keep it simple and mainstream)',
+    '- Recommend project structure or architecture pattern',
+    '- Identify 3-4 core features to implement first',
     '',
-    '## Guidelines',
-    '- Use modern, well-supported technologies',
-    '- Prioritize developer experience and maintainability',
-    '- Include specific tool and version recommendations',
-    '- Consider project scale and team size',
-    '- Provide rationale for major technology choices',
-    '- Structure as actionable implementation roadmap',
-    '- No meta-commentary about the specification itself',
+    '**Implementation Guidance**',
+    '- Break down development into logical phases',
+    '- Highlight important technical considerations',
+    '- Suggest key libraries or frameworks to use',
+    '',
+    '**Development Focus**',
+    '- Prioritize user experience and core functionality',
+    '- Keep technology choices modern but well-established',
+    '- Structure as an actionable development plan',
+    '',
+    'Guidelines:',
+    '- Focus on practical implementation, not exhaustive analysis',
+    '- Avoid over-engineering - suggest the simplest approach that works',
+    '- Keep recommendations concise and developer-friendly',
+    '- No deep technical architecture details unless essential',
+    '- Structure as a clear development roadmap',
     '',
     'INPUT: ' + input,
     '',
-    'Generate the comprehensive project specification:',
+    'Generate the focused project specification:',
   ].join('\n')
 }

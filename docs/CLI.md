@@ -46,6 +46,11 @@ promptpad refine "design a logo" --output logo-brief.md
 
 # Copy result to clipboard (macOS/Linux/Windows)
 promptpad refine "plan a marketing campaign" --copy
+
+# Use with Claude (pass as argument, not pipe)
+claude "$(promptpad refine 'Build a todo app.')"
+# or with variables
+TASK="Draft contribution guidelines" && claude "$(promptpad refine "$TASK")"
 ```
 
 ### Global Options
@@ -148,15 +153,55 @@ npm install -g promptpad-0.1.0.tgz
 
 ### 1. Enhanced Claude Code Prompts
 
-Transform simple requests into detailed prompts for Claude Code:
+Transform simple requests into detailed prompts for Claude Code. This is the most powerful use case - using Promptpad to generate comprehensive prompts that you can pipe directly to Claude Code for superior results.
+
+#### Direct Piping with Claude Code CLI
 
 ```bash
-# Before
-promptpad refine "help with testing"
+# Refine a brief instruction and pipe directly to Claude Code
+promptpad refine "add error handling to this code" | claude
 
-# Outputs detailed testing guidance
+# Generate a project spec and use it with Claude Code
+promptpad spec "build a REST API for user management" | claude
+
+# Optimize an existing prompt and pipe to Claude
+promptpad reinforce "$(cat existing-prompt.md)" | claude
+```
+
+#### Copy-and-Paste Workflow
+
+```bash
+# Generate detailed testing prompt
 promptpad refine "help with testing" --copy
-# Then paste into Claude Code for comprehensive testing assistance
+# Paste into Claude Code chat for comprehensive testing assistance
+
+# Create detailed code review guidelines
+promptpad refine "review my React component" --copy
+# Paste into Claude Code for thorough code analysis
+
+# Generate project specification
+promptpad spec "e-commerce checkout system" --copy
+# Paste into Claude Code for detailed implementation guidance
+```
+
+#### Real-World Examples
+
+```bash
+# Transform vague requests into actionable prompts
+promptpad refine "optimize database queries"
+# Output: "Analyze the provided database queries and suggest specific optimizations..."
+
+promptpad refine "fix bugs in authentication"
+# Output: "Review the authentication system for security vulnerabilities and bugs..."
+
+promptpad spec "mobile app for fitness tracking"
+# Output: "Design a comprehensive mobile application for fitness tracking with..."
+
+# Chain operations for complex tasks
+promptpad refine "document API endpoints" --copy
+# Use output with Claude Code, then:
+promptpad reinforce "$(claude-output)" --copy
+# Refine Claude's response for even better documentation
 ```
 
 ### 2. Documentation Generation

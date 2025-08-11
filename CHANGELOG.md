@@ -54,6 +54,8 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 - Comprehensive development coordination system for maintaining system invariants
 
 ### Changed
+- Tooltip: avoid focus-triggered positioning to prevent `NaN` style values in Next.js during text input
+- CLI docs: recommend passing CLI output as argument to Claude, e.g., `claude "$(promptpad refine 'Build a todo app.')"`
 - Strengthened `/api/refine` error logging; fixed catch-scope reference for robust logging when JSON parsing fails
 - Completed reinforce prompt builder to match refine/reinforce contract and guidance
 - Align agent guidance with AIDEVOPS: updated `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`; added devlog scaffold.

@@ -23,22 +23,22 @@ describe('Home refine flow (mocked)', () => {
   it('handles successful refine and sets output text', async () => {
   render(<ThemeProvider><Home /></ThemeProvider>)
     fireEvent.change(screen.getByLabelText('Prompt input area'), { target: { value: 'idea' } })
-    const btn = screen.getByLabelText('Refine prompt')
+    const btn = screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')
     expect(btn).toBeEnabled()
     fireEvent.click(btn)
     await waitFor(() => {
-      expect(screen.getByLabelText('Prompt output area')).toHaveValue('Refined: idea')
+      expect(screen.getByLabelText('Enhanced prompt output area')).toHaveValue('Refined: idea')
     })
   })
 
   it('logs fallback when output invalid (blank string)', async () => {
   render(<ThemeProvider><Home /></ThemeProvider>)
     fireEvent.change(screen.getByLabelText('Prompt input area'), { target: { value: 'bad' } })
-    const btn = screen.getByLabelText('Refine prompt')
+    const btn = screen.getByLabelText('Refine prompt - Expand brief instructions into detailed prompts')
     fireEvent.click(btn)
     await waitFor(() => {
       // Should not set output (blank trimmed)
-      expect(screen.getByLabelText('Prompt output area')).toHaveValue('')
+      expect(screen.getByLabelText('Enhanced prompt output area')).toHaveValue('')
     })
   })
 })
