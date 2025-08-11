@@ -106,7 +106,7 @@ export default function ThemeDropdown() {
         id="theme-dropdown"
         onClick={handleToggle}
         className="flex items-center space-x-2 bg-white/60 hover:bg-white/80 border border-white/40 px-3 py-1.5 text-xs rounded-md font-medium focus-visible transition-all duration-200"
-        aria-label="Select theme accent color"
+  aria-label="Select theme accent color"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         type="button"

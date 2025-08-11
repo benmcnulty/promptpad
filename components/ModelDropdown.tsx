@@ -51,8 +51,8 @@ export default function ModelDropdown() {
         type="button"
         onClick={handleToggle}
         className="flex items-center space-x-2 bg-white/60 hover:bg-white/80 border border-white/40 px-3 py-1.5 text-xs rounded-md font-medium focus-visible transition-all duration-200"
-        aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-label="Model selector"
         title={error ? `Models: ${error}` : 'Select model'}
       >
         <span className="text-slate-600 font-medium">{label}</span>
@@ -63,22 +63,23 @@ export default function ModelDropdown() {
 
       {isOpen && (
         <div className={`absolute ${shouldOpenUpward ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 w-56 bg-white/95 backdrop-blur-md border border-white/40 rounded-lg shadow-elegant z-50 overflow-hidden ${shouldOpenUpward ? 'animate-fade-in-down' : 'animate-fade-in-up'}`}>
-          <ul role="listbox" className="py-1 max-h-64 overflow-auto">
+          <ul className="py-1 max-h-64 overflow-auto" aria-label="Model options">
             {loading && (
               <li className="px-3 py-2 text-sm text-slate-600">Loading models…</li>
             )}
             {!loading && models.map(m => {
               const isSelected = m.name === selectedModel
               return (
-                <li key={m.name} role="option" aria-selected={isSelected}>
+                <li key={m.name}>
                   <button
                     type="button"
+                    aria-current={isSelected ? 'true' : undefined}
                     onClick={() => { setSelectedModel(m.name); setIsOpen(false) }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 text-sm transition-colors ${isSelected ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left transition-colors ${isSelected ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}
                   >
                     <span className="truncate mr-2">{m.name}</span>
                     {isSelected && (
-                      <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-emerald-600 ml-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
                       </svg>
                     )}
@@ -86,7 +87,7 @@ export default function ModelDropdown() {
                 </li>
               )
             })}
-            {!loading && !models.length && (
+            {!loading && models.length === 0 && (
               <li className="px-3 py-2 text-sm text-slate-600">No models available</li>
             )}
           </ul>

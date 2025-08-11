@@ -33,7 +33,7 @@ export default function ProgressTracker({ steps, className = '' }: ProgressTrack
   const isComplete = completedSteps === steps.length && !hasError
   
   return (
-    <div className={`space-y-3 ${className}`} aria-label="Operation progress tracker">
+  <div className={`space-y-3 ${className}`} aria-label="Operation progress tracker">
       {/* Current step status - improved typography and contrast */}
       <div className="text-center min-h-[1.5rem] flex items-center justify-center">
         {isProcessing ? (

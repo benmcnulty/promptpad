@@ -136,12 +136,11 @@ export default function Tooltip({
   const isVisible = showTooltip && isPositioned && mousePos.x > 0 && mousePos.y > 0
   
   const tooltipStyle = {
-    ...baseStyle,
-    opacity: isVisible ? 1 : 0,
-    visibility: (showTooltip ? 'visible' : 'hidden') as 'visible' | 'hidden',
-    transition: 'opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
-    transform: `${baseStyle.transform} ${isVisible ? 'scale(1)' : 'scale(0.95)'}`
+    left: baseStyle.left,
+    top: baseStyle.top,
+    transform: baseStyle.transform
   }
+  const tooltipClass = `tooltip-float ${isVisible ? 'tooltip-float-visible' : ''}`
 
   return (
     <div 
@@ -153,9 +152,10 @@ export default function Tooltip({
       {children}
       {mounted && createPortal(
         <div 
-          className="fixed z-[99999] pointer-events-none"
+          className={`fixed z-[99999] pointer-events-none ${tooltipClass}`}
           style={tooltipStyle}
           role="tooltip"
+          aria-live="polite"
         >
           {/* Tooltip content */}
           <div className="bg-slate-800 text-white text-sm px-3 py-2 rounded-lg shadow-xl backdrop-blur-sm border border-slate-700 max-w-xs whitespace-normal leading-relaxed">
@@ -164,8 +164,7 @@ export default function Tooltip({
           
           {/* Arrow */}
           <div 
-            className={`absolute ${getArrowClasses()}`}
-            style={{ width: 0, height: 0 }}
+            className={`absolute tooltip-arrow ${getArrowClasses()}`}
           />
         </div>,
         document.body

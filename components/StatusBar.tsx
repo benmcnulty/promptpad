@@ -98,7 +98,7 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
     <div 
       className={`flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-3 glass border-t border-white/20 text-sm backdrop-blur-md ${className}`}
       role="status"
-      aria-label="Application status bar"
+  aria-label="Application status bar"
     >
       <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-2 sm:mb-0">
         <span className="flex items-center">

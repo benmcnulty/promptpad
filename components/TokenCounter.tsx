@@ -45,7 +45,7 @@ export default function TokenCounter({
   return (
     <span 
       className={`flex items-center bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium border border-white/50 shadow-soft hover:bg-white/80 transition-colors duration-200 ${className}`}
-      aria-label={`${label}: ${count}`}
+  aria-label={`${label}: ${count}`}
     >
       <span className="text-slate-600 font-medium">{label}:</span>
       <span className="font-mono ml-3 text-base">

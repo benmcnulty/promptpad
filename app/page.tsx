@@ -257,7 +257,7 @@ export default function Home() {
       {/* Main Content - Single Column Layout */}
       <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
         {/* Input Section */}
-        <div className="flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden animate-fade-in-up" style={{ height: '30%' }}>
+  <div className="flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden animate-fade-in-up section-input">
           <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -298,7 +298,7 @@ export default function Home() {
           </div>
         </div>
         {/* Output Section */}
-        <div className="flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden animate-slide-in-right" style={{ height: '50%' }}>
+  <div className="flex flex-col glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md overflow-hidden animate-slide-in-right section-output">
           <div className="gradient-secondary p-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center">
               <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
