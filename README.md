@@ -6,7 +6,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.4.6-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-140%20passing-brightgreen)](https://github.com/yourusername/promptpad)
+[![Tests](https://img.shields.io/badge/Tests-156%20passing-brightgreen)](https://github.com/yourusername/promptpad)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **[Demo](#-quick-start)** • **[Features](#-production-features)** • **[Installation](#-installation)** • **[CLI](#-command-line-cli)** • **[Documentation](#-documentation)** • **[Contributing](#-contributing)**
@@ -39,16 +39,23 @@ pnpm dev
 
 ## ⚡ How It Works
 
-Promptpad implements a **two-pass workflow** for prompt refinement:
+Promptpad implements a **two-layer refinement workflow** for drafting plus an *internal* optional normalization pass that activates heuristically when a model emits meta framing ("Okay, here's...", `**Prompt:**`, quotes, etc.). This keeps outputs agnostic across tiny and large local models without sacrificing quality.
 
 ```mermaid
 graph LR
-    A[Brief Idea] --> B[Refine]
-    B --> C[Detailed Prompt]
-    C --> D[Edit & Review]
-    D --> E[Reinforce]
-    E --> F[Production Prompt]
-    F --> G[Copy & Use]
+  A[Brief Idea] --> B[Refine (Primary Gen)]
+  B --> B2{Heuristic?}
+  B2 -- yes --> B3[LLM Cleanup Pass]
+  B2 -- no --> C
+  B3 --> C[Detailed Prompt]
+  C --> D[Edit & Review]
+  D --> E[Reinforce (Optimize)]
+  E --> E2{Heuristic?}
+  E2 -- yes --> E3[LLM Cleanup Pass]
+  E2 -- no --> F
+  E3 --> F[Production Prompt]
+  F --> G[Copy / Spec]
+  A --> S[Spec Mode] --> S2{Heuristic?} --> S3[Cleanup] --> F
 ```
 
 ### The Process
@@ -56,14 +63,16 @@ graph LR
 1. **✍️ Enter** a brief instruction in the left panel  
    *Example: "Create a marketing email for new product launch"*
 
-2. **🔄 Refine** → AI expands it into a structured, actionable prompt  
-   *Adds context, constraints, format requirements, and variables*
+2. **🔄 Refine** → Primary LLM pass expands into a structured, actionable prompt  
+  *Adds context, constraints, format requirements, and variables*
+  - If the raw model output begins with meta framing or polite prefaces, a **secondary low‑temperature cleanup pass** rewrites it without commentary (no headers, quotes, "Here's", etc.)
 
 3. **📝 Edit** freely with real-time token counting and live preview  
    *Full control over the generated content*
 
 4. **💪 Reinforce** → AI optimizes your edited draft for maximum effectiveness  
-   *Tightens language, improves clarity, enhances structure*
+  *Tightens language, improves clarity, enhances structure* (also eligible for the heuristic cleanup pass)
+6. **🛠 Spec (Optional)** → Generate a concise, actionable project specification from an idea (also normalized if meta detected)
 
 5. **📋 Copy** with one-click clipboard integration  
    *Ready to paste into any AI tool*
@@ -73,7 +82,7 @@ graph LR
 ## ✨ Production Features
 
 ### 🎯 Core Functionality
-- **🔄 Two-Pass Refinement**: Refine (expand) → Reinforce (optimize)
+- **🔄 Dual-Layer Generation**: Refine (expand) → Reinforce (optimize) with automatic *conditional* cleanup pass for meta/noise removal
 - **📊 Real-time Token Counting**: Precise TikToken integration with fallbacks
 - **📋 One-Click Copy**: Instant clipboard integration with visual feedback
 - **⚡ Local-First**: All processing via your local Ollama instance
@@ -89,7 +98,7 @@ graph LR
 - **🎭 Accessibility**: Full WCAG compliance with keyboard navigation
 
 ### 🔧 Developer Experience
-- **🧪 100% Test Coverage**: 140+ tests across all functionality
+- **🧪 Extensive Automated Tests**: 150+ tests across API, UI, hooks, and core libraries (diff, history, tokens)
 - **📝 TypeScript**: Complete type safety and IntelliSense support
 - **🔍 Debug Terminal**: Full request/response logging for troubleshooting
 - **🎛️ Status Monitoring**: Real-time Ollama connection and health status
@@ -231,7 +240,7 @@ Each theme provides unique gradient combinations for primary and secondary eleme
 Frontend:  Next.js 15.4.6 + React 19 + TypeScript 5.9
 Styling:   Tailwind CSS 3.4 + Custom CSS Properties
 Backend:   Next.js API Routes + Ollama Integration
-Testing:   Jest 30 + Testing Library + 140+ Tests
+Testing:   Jest 30 + Testing Library + 150+ Tests
 Tooling:   ESLint + TypeScript + pnpm
 ```
 
@@ -356,7 +365,7 @@ Returns current git commit information for version tracking.
 
 ## 🧪 Testing
 
-Promptpad includes a comprehensive test suite with 140+ tests covering all functionality:
+Promptpad includes a comprehensive test suite with 150+ tests covering all functionality:
 
 ### Test Categories
 

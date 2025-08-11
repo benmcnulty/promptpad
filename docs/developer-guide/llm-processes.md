@@ -2,7 +2,7 @@
 
 ## Overview
 
-Promptpad implements a sophisticated **multi-modal LLM workflow** designed to transform terse instructions into professional, copy-ready prompts and comprehensive project specifications. This document provides comprehensive technical details on all three processes to enable team optimization and understanding.
+Promptpad implements a sophisticated **multi-modal, multi-pass LLM workflow** designed to transform terse instructions into professional, copy-ready prompts and comprehensive project specifications. A core enhancement is an **optional heuristic-triggered cleanup pass** that normalizes raw model output from heterogeneous local models (from 1B to 20B parameters) by removing meta framing ("Okay, here's...", `**Prompt:**`, speculative commentary, surrounding quotes) while preserving substantive structure.
 
 ## Architecture Summary
 
@@ -20,7 +20,7 @@ Reinforce    detailed prompts"         ↓               ↓
 
 ## Core Implementation Files
 
-- **API Route**: `app/api/refine/route.ts:74-187` - Main processing logic
+- **API Route**: `app/api/refine/route.ts` - Main processing logic (includes heuristic + secondary cleanup pass)
 - **Ollama Client**: `lib/ollama.ts:55-191` - LLM communication layer  
 - **Hook Integration**: `hooks/useRefine.ts:74-133` - State management
 - **UI Components**: `app/page.tsx:71-122` - User interface integration
@@ -64,7 +64,7 @@ function buildRefinePrompt(input: string): string {
 4. **Technical Parameter Exclusion**: Explicitly avoids AI-specific parameters
 5. **Ambiguity Elimination**: Converts vague requests into specific requirements
 
-### Processing Pipeline
+### Processing Pipeline (Refine)
 
 ```typescript
 // 1. Input Validation (app/api/refine/route.ts:33-35)
@@ -78,14 +78,30 @@ const temperature = Math.min(body.temperature ?? 0.2, 0.3)
 // 3. Ollama Generation (app/api/refine/route.ts:77)
 const { text, usage } = await ollama.generate(model, prompt, { temperature })
 
-// 4. Response Cleaning (app/api/refine/route.ts:82-88)
-const cleanedText = text
+// 4. Primary Heuristic Cleaning (simplifies obvious wrappers)
+let cleanedText = rawText
+  .replace(/^(?:Okay|Sure|Certainly|Alright|Great|Fine)(?:,|\.)?\s+(?:here['’]s\s+)?(?:an?\s+)?(?:refined|improved|enhanced|better)?\s*prompt:\s*/i, '')
   .replace(/^\*\*Prompt:\*\*\s*/i, '')
   .replace(/^Prompt:\s*/i, '')
   .replace(/^# Prompt\s*/i, '')
-  .replace(/^Here's the (refined|reinforced) prompt:\s*/i, '')
+  .replace(/^Here['’]s the (refined|reinforced) prompt:\s*/i, '')
+  .replace(/^Here is the (refined|reinforced) prompt:\s*/i, '')
+  .replace(/^[“”]([\s\S]*?)[””]$/, '$1')
   .replace(/^"([\s\S]*)"$/, '$1')
   .trim()
+
+// 5. Heuristic Trigger Decision
+const needsLLMPostProcess = /^(?:Okay|Sure|Certainly|Alright|Great|Fine)[,!.]?\s+here['’]s/i.test(rawText.trim())
+  || /^("|“|\*\*Prompt:|Prompt:|Here['’]s|Here is)/i.test(rawText.trim())
+  || /(refined|improved|enhanced) prompt:/i.test(rawText.slice(0,120))
+  || /(I (made|have made)|The improvements include)/i.test(rawText)
+
+// 6. Secondary LLM Cleanup Pass (low temperature ≤0.15)
+if (needsLLMPostProcess) {
+  const cleanupPrompt = buildCleanupPrompt(cleanedText, 'refine')
+  const { text: cleanedAgain } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+  cleanedText = cleanedAgain.replace(/^[“”]([\s\S]*?)[””]$/, '$1').replace(/^"([\s\S]*)"$/, '$1').trim()
+}
 ```
 
 ### Response Format
@@ -139,20 +155,9 @@ function buildReinforcePrompt(draft: string): string {
 4. **Flow Optimization**: Reorganizes content for logical progression
 5. **Meta-Commentary Exclusion**: Returns only prompt content, no explanations
 
-### Enhanced Response Cleaning
+### Enhanced Response Cleaning & Normalization
 
-**Location**: `app/api/refine/route.ts:100-108`
-
-```typescript
-const cleanedText = text
-  .replace(/^\*\*Prompt:\*\*\s*/i, '')
-  .replace(/^Prompt:\s*/i, '')
-  .replace(/^# Prompt\s*/i, '')
-  .replace(/^Here's (an? )?(enhanced|improved|refined|reinforced) (version of the )?.*?prompt:\s*/i, '')
-  .replace(/^"([\s\S]*)"$/, '$1')
-  .replace(/\n\n(I made the following improvements|Let me know if|The improvements include)[\s\S]*$/i, '') // Remove trailing meta-commentary
-  .trim()
-```
+Reinforce shares the same heuristic + optional secondary pass. It additionally removes trailing meta commentary summarizing improvements and broadens detection of variant prefaces.
 
 ### Patch Generation
 
@@ -260,20 +265,9 @@ const specSteps: ProgressStep[] = [
 }
 ```
 
-### Enhanced Response Cleaning for Spec
+### Spec Mode Cleanup
 
-**Location**: `app/api/refine/route.ts` (shared cleaning logic)
-
-```typescript
-// Spec responses often include formatting that needs preservation
-const cleanedText = text
-  .replace(/^\*\*Project Specification:\*\*\s*/i, '')
-  .replace(/^Specification:\s*/i, '')
-  .replace(/^# (Project )?Specification\s*/i, '')
-  .replace(/^Here's (a )?comprehensive (project )?specification:\s*/i, '')
-  .replace(/^"([\s\S]*)"$/, '$1')
-  .trim()
-```
+Spec mode applies analogous heuristics (e.g., removing "Here’s the comprehensive specification:" and any markdown headers) and the same conditional cleanup pass for consistent formatting across models.
 
 ### Quality Characteristics
 
@@ -359,11 +353,12 @@ const baseSteps: ProgressStep[] = [
 ## Quality Assurance
 
 ### Response Cleaning Patterns
-Both processes implement comprehensive cleaning to remove:
-- Model-generated headers (`**Prompt:**`, `# Prompt`)
-- Meta-commentary (`Here's the refined prompt:`)
-- Trailing explanations (`I made the following improvements...`)
-- Surrounding quotes from over-eager models
+All modes share a layered cleaning strategy:
+1. **Heuristic Regex Phase**: Strip prefaces, headers, quote wrappers, trailing improvement summaries.
+2. **Conditional LLM Normalization** (low temperature): Re-emits only substantive content if heuristics detect residual meta framing.
+3. **Post-Pass Sanity Strip**: Final quote/code-fence removal for edge cases.
+
+This preserves semantic structure while eliminating "fourth wall" commentary from smaller models.
 
 ### Contract Compliance
 **API Response Schema**: `docs/agents/schemas/api-contract.schema.json`
@@ -391,13 +386,16 @@ Both processes implement comprehensive cleaning to remove:
 ## Optimization Opportunities
 
 ### Current Optimizations
-1. **Temperature Constraint**: Hard limit ≤0.3 for consistency
-2. **Response Cleaning**: Comprehensive regex patterns
-3. **Soft Timeouts**: Warning-only to allow slow generations
-4. **Development Fallbacks**: Maintains productivity when Ollama down
+1. **Temperature Constraint**: Hard limit ≤0.3 (≤0.15 in cleanup pass)
+2. **Two-Layer Normalization**: Heuristic + optional semantic cleanup
+3. **Regex Library**: Curated patterns for polite prefaces & meta text
+4. **Soft Timeouts**: Warning-only to allow slow generations
+5. **Development Fallbacks**: Maintains productivity when Ollama down
 
 ### Future Enhancements
 1. **Streaming Responses**: Progressive UI updates during generation
+2. **Adaptive Heuristics**: Telemetry-informed refinement of detection patterns
+3. **Structured Content Validator**: Enforce section presence (length, bullets) post-cleanup
 2. **Context Preservation**: Multi-turn conversations
 3. **Template System**: Reusable prompt patterns
 4. **Quality Metrics**: Automated prompt quality assessment

@@ -7,6 +7,8 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 ## [Unreleased]
 ### Added
 - Two-phase refinement pipeline with optional LLM cleanup pass (normalizes outputs across heterogeneous local models; second pass triggered heuristically only when meta wrappers detected)
+  - Expanded heuristic patterns (polite prefaces, curly quotes, meta commentary) and low-temperature semantic normalization pass
+  - Documentation updates (README, LLM processes) reflecting multi-pass design and cleanup strategy
 - Footer model dropdown powered by `/api/models`; preference persisted in localStorage and applied across all refine/reinforce requests
 - Welcome modal copy and link to Ollama downloads; generic guidance for default gpt-oss model
 - Promptpad CLI with refine/reinforce parity (bin: `promptpad`, docs: `docs/CLI.md`)
