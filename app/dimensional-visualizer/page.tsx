@@ -1,10 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
+import Visualizer2D from '@/components/visualizer/Visualizer2D'
+import { vectorizeText } from '@/lib/vectorization'
+import { useModel } from '@/components/ModelProvider'
+import { useRefine } from '@/hooks/useRefine'
+
+const Visualizer3D = dynamic(() => {
+  if (process.env.NEXT_PUBLIC_ENABLE_R3F !== '1') {
+    return Promise.resolve(() => null as any)
+  }
+  return import('@/components/visualizer/Visualizer3D')
+}, { ssr: false, loading: () => null })
 
 export default function DimensionalVisualizerPage() {
   const [constructionStep, setConstructionStep] = useState(0)
   const [loadingDots, setLoadingDots] = useState('')
+  const [input, setInput] = useState('Analyze customer sentiment across reviews for the last 90 days and surface themes.')
+  const [output, setOutput] = useState<string>("")
+  const { selectedModel } = useModel()
+  const { run, state } = useRefine(selectedModel, 0.2)
+
+  const demoText = output || `User: ${input}\nAI: The overall sentiment trends positive, with notable clusters around delivery speed, packaging quality, and support responsiveness. Some outliers indicate confusion around return policies.`
+
+  const demoFrame = useMemo(() => vectorizeText(demoText, 'radialSpiral'), [demoText])
 
   useEffect(() => {
     // Animated construction steps
@@ -35,7 +55,7 @@ export default function DimensionalVisualizerPage() {
 
   return (
     <div className="h-full flex flex-col gradient-surface overflow-hidden">
-      <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
+      <main role="main" aria-label="Dimensional Visualizer" className="flex-1 flex flex-col max-w-7xl mx-auto w-full gap-4 p-2 sm:p-4 min-h-0 overflow-hidden">
         {/* Coming Soon Section */}
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-2xl mx-auto">
@@ -69,6 +89,39 @@ export default function DimensionalVisualizerPage() {
                 {constructionSteps[constructionStep].text}{loadingDots}
               </div>
             </div>
+            {/* Simple LLM input */}
+            <form
+              className="glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md p-4 mb-6 text-left"
+              onSubmit={async (e) => {
+                e.preventDefault()
+                const res = await run('refine', input)
+                if (res?.output) setOutput(res.output)
+              }}
+            >
+              <label htmlFor="viz-input" className="block text-sm font-medium text-slate-700 mb-1">Enter text to visualize</label>
+              <div className="flex gap-2">
+                <input
+                  id="viz-input"
+                  name="viz-input"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type something..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-60"
+                  disabled={state.loading}
+                >
+                  {state.loading ? 'Generating…' : 'Visualize'}
+                </button>
+              </div>
+              {state.error && (
+                <div className="mt-2 text-sm text-red-700 bg-red-50 px-3 py-2 rounded border border-red-200">
+                  {state.error}
+                </div>
+              )}
+            </form>
 
             <div className="glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md p-8 mb-8">
               <h3 className="text-lg font-semibold text-slate-800 mb-6 flex items-center text-emboss-subtle">
@@ -115,98 +168,41 @@ export default function DimensionalVisualizerPage() {
               </div>
             </div>
 
-            {/* Prototype Interface Preview */}
+            {/* Prototype Interface Preview */
+            }
             <div className="glass-enhanced rounded-xl border border-white/30 shadow-elegant backdrop-blur-md p-6 mb-8">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
                 <span className="text-2xl mr-2">🎮</span>
                 Interface Preview
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Chat Interface Mockup */}
+                {/* Text + LLM Output */}
                 <div className="bg-white/60 rounded-lg border border-white/50 p-4">
                   <h4 className="font-semibold text-slate-700 mb-3 flex items-center">
                     <span className="mr-2">💬</span>
-                    Chat Interface
+                    LLM Output
                   </h4>
-                  <div className="space-y-2 mb-3">
-                    <div className="bg-blue-100 text-blue-800 p-2 rounded-lg text-sm">
-                      <strong>User:</strong> Analyze customer sentiment...
-                    </div>
-                    <div className="bg-green-100 text-green-800 p-2 rounded-lg text-sm">
-                      <strong>AI:</strong> Based on the data, I observe...
-                    </div>
-                  </div>
-                  <div className="flex">
-                    <input 
-                      type="text" 
-                      placeholder="Enter message to visualize..." 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
-                      disabled
-                    />
-                    <button className="bg-blue-500 text-white px-4 py-2 rounded-r-lg text-sm" disabled>
-                      Send
-                    </button>
-                  </div>
+                  <pre className="whitespace-pre-wrap text-sm leading-5 bg-white/70 border border-gray-200 rounded-md p-3 max-h-64 overflow-auto">
+                    {output || 'Submit text to generate and visualize an LLM response.'}
+                  </pre>
                 </div>
 
-                {/* 3D Visualization Mockup */}
-                <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-lg border border-white/50 p-4 min-h-[200px] relative overflow-hidden">
+                {/* 3D Visualizer (gated), with 2D fallback */}
+                <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-lg border border-white/50 p-4 relative overflow-hidden">
                   <h4 className="font-semibold text-white mb-3 flex items-center">
                     <span className="mr-2">🌌</span>
-                    3D Vector Space
+                    Vector Space
                   </h4>
-                  
-                  {/* CSS-based 3D mockup */}
-                  <div className="absolute inset-4 perspective-1000">
-                    <div className="relative h-full">
-                      {/* Floating vector points */}
-                      {[...Array(12)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="absolute w-2 h-2 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full shadow-lg animate-pulse"
-                          style={{
-                            left: `${20 + (i * 7) % 60}%`,
-                            top: `${15 + (i * 11) % 50}%`,
-                            animationDelay: `${i * 200}ms`,
-                            transform: `translateZ(${i * 10}px) rotateY(${i * 30}deg)`
-                          }}
-                        />
-                      ))}
-                      
-                      {/* Connecting lines */}
-                      <svg className="absolute inset-0 w-full h-full opacity-40">
-                        <defs>
-                          <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style={{stopColor: '#06b6d4', stopOpacity: 0.8}} />
-                            <stop offset="100%" style={{stopColor: '#8b5cf6', stopOpacity: 0.8}} />
-                          </linearGradient>
-                        </defs>
-                        <path 
-                          d="M20,40 Q50,20 80,60 T120,50 Q150,80 180,30"
-                          stroke="url(#pathGradient)" 
-                          strokeWidth="2" 
-                          fill="none"
-                          className="animate-pulse"
-                        />
-                        <path 
-                          d="M40,70 Q70,50 100,90 T140,80 Q170,110 200,60"
-                          stroke="url(#pathGradient)" 
-                          strokeWidth="1.5" 
-                          fill="none"
-                          className="animate-pulse"
-                          style={{animationDelay: '1s'}}
-                        />
-                      </svg>
-                      
-                      {/* Center focal point */}
-                      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div className="w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full shadow-lg animate-spin"></div>
-                      </div>
-                    </div>
+                  <div className="rounded-md overflow-hidden">
+                    {process.env.NEXT_PUBLIC_ENABLE_R3F === '1' ? (
+                      // @ts-ignore dynamic fallback to noop when flag off
+                      <Visualizer3D frame={demoFrame} />
+                    ) : (
+                      <Visualizer2D frame={demoFrame} width={640} height={320} />
+                    )}
                   </div>
-                  
-                  <div className="absolute bottom-2 right-2 text-xs text-white/70">
-                    ThreeJS + React Fiber
+                  <div className="mt-2 text-xs text-white/70">
+                    {process.env.NEXT_PUBLIC_ENABLE_R3F === '1' ? '3D interactive scene (OrbitControls enabled)' : '2D projection fallback; enable 3D with NEXT_PUBLIC_ENABLE_R3F=1'}
                   </div>
                 </div>
               </div>
