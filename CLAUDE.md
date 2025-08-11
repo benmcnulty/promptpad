@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Promptpad is a **fully functional** local-first prompt drafting tool built with Next.js 15.4.6 + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The app implements a multi-mode workflow: Refine (expand prompts), Reinforce (optimize prompts), and Spec (generate coding project specifications) with comprehensive UI/UX enhancements.
+Promptpad is a **fully functional** local-first prompt drafting tool built with Next.js 15.4.6 + TypeScript. It expands terse instructions into copy-ready prompts via Ollama (default: `gpt-oss:20b`). The app implements a multi-mode workflow: Refine (expand prompts), Reinforce (optimize prompts), and Spec (generate coding project specifications) plus an internal heuristic + optional low‑temperature cleanup pass that normalizes meta-heavy raw outputs from smaller models.
 
 **Status**: ✅ **PRODUCTION READY** - Fully implemented with comprehensive testing, responsive design, loading animations, debugging tools, and optimized prompting.
 
@@ -15,7 +15,7 @@ Promptpad is a **fully functional** local-first prompt drafting tool built with 
 Key documentation for understanding the codebase:
 - **[LLM Processes](docs/developer-guide/llm-processes.md)** - Complete technical breakdown of Refine/Reinforce workflows
 - **[Architecture](docs/developer-guide/architecture.md)** - React patterns, custom hooks, and design patterns
-- **[Testing Strategy](docs/developer-guide/testing.md)** - 108+ tests with 96%+ coverage patterns
+- **[Testing Strategy](docs/developer-guide/testing.md)** - 150+ tests with high coverage patterns
 - **[Performance](docs/developer-guide/performance.md)** - Caching, optimization, and monitoring strategies
 - **[Error Handling](docs/developer-guide/error-handling.md)** - Resilience patterns and graceful degradation
 
@@ -25,7 +25,7 @@ Key documentation for understanding the codebase:
 - Three operations: Refine, Reinforce, and Spec. Keep endpoints stable.
 - Endpoints: `GET /api/models`, `GET /api/git-info`, `POST /api/refine` with `mode: refine|reinforce|spec` → `{ output, usage, patch?, systemPrompt?, fallbackUsed? }`.
 - Patch format: compact text‑range ops used by diff/undo/redo. Do not change without an ADR.
-- All model responses are automatically cleaned of unwanted prefixes (e.g., "**Prompt:**", "Here's the refined prompt:").
+- All model responses undergo layered normalization: regex heuristic stripping + conditional semantic cleanup if meta framing detected.
 
 ## Contracts (Frozen)
 - Endpoints:
@@ -80,18 +80,17 @@ When source code is implemented, use these commands:
 
 ### Refine Operation
 **Purpose**: Expand terse input into detailed, actionable prompts
-**System Prompt**: Comprehensive instructions to transform vague requests into specific, measurable requirements with relevant constraints (word count, format, tone, etc.)
-**Features**: Auto-cleanup of unwanted AI technical parameters, direct prompt content output
+**System Prompt**: Adds goals, constraints (length, tone, audience, style, format) while preserving intent.
+**Normalization**: If output starts with meta framing ("Okay, here's", `**Prompt:**`, quotes) or includes improvement commentary, a secondary cleanup generation (temp ≤0.15) rewrites it without narration.
 
-### Reinforce Operation  
+### Reinforce Operation
 **Purpose**: Optimize existing prompts for precision and effectiveness
-**System Prompt**: Focused on sharpening language, adding missing constraints, reorganizing for clarity, and removing redundancy
-**Features**: No meta-commentary, significant content improvements, maintains original intent
+**System Prompt**: Tightens wording, adds only essential constraints, preserves placeholders.
+**Normalization**: Same heuristic + optional cleanup pass (removes improvement summaries, meta commentary).
 
 ### Spec Operation
-**Purpose**: Generate comprehensive coding project specifications with intelligent technology guidance
-**System Prompt**: Expert-level instructions to analyze project requirements and create detailed technical specifications with architecture recommendations, technology stack selection, and implementation roadmaps
-**Features**: Multi-step processing with dynamic progress tracking, comprehensive project analysis, technology-specific recommendations
+**Purpose**: Generate concise, actionable project specification with practical stack & phased roadmap.
+**Normalization**: Removes "Here’s the (comprehensive) specification" headers, markdown spec headers, and extraneous quotes; optional cleanup pass ensures consistent formatting.
 
 ## Architecture & File Structure
 
@@ -157,20 +156,17 @@ __tests__/               # ✅ Comprehensive test suite with 96%+ coverage
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Refine Operation | ✅ Production Ready | Expands terse input into detailed prompts |
-| Reinforce Operation | ✅ Production Ready | Significantly improves existing prompts |
-| Spec Operation | ✅ Production Ready | Generates comprehensive coding project specifications |
-| Single-Column UI | ✅ Production Ready | Streamlined input → output → controls flow |
-| Dynamic Progress | ✅ Production Ready | Variable step tracking with detailed status |
-| Responsive Design | ✅ Production Ready | Works on all screen sizes |
-| Loading States | ✅ Production Ready | Animated overlays during processing |
-| Copy to Clipboard | ✅ Production Ready | One-click copying with feedback |
-| Debug Terminal | ✅ Production Ready | Full request/response logging |
-| Ollama Integration | ✅ Production Ready | 120s timeout, health checking |
-| Token Counting | ✅ Production Ready | Real-time with TikToken + fallbacks |
-| Welcome Modal | ✅ Production Ready | Multiple dismiss options, persistence |
-| Git Integration | ✅ Production Ready | Dynamic commit info display |
-| Error Handling | ✅ Production Ready | Graceful fallbacks, user feedback |
+| Refine | ✅ | Expansion + conditional cleanup normalization |
+| Reinforce | ✅ | Precision edits + patch + cleanup normalization |
+| Spec | ✅ | Focused project spec + cleanup normalization |
+| Dual-Layer Cleanup | ✅ | Heuristic regex + semantic low-temp pass |
+| Token Counting | ✅ | Real-time via TikToken + LRU cache |
+| Debug Terminal | ✅ | System prompt & usage visibility |
+| Ollama Integration | ✅ | 120s soft timeout, health checks |
+| Error Handling | ✅ | Deterministic fallbacks & structured errors |
+| CLI | ✅ | Parity with UI modes |
+| Theming | ✅ | Accent + dark/light, persisted |
+| Tests | ✅ | 150+ passing suites |
 | CLI Support | ✅ Production Ready | Complete command-line interface with all modes |
 | Testing Suite | ✅ Production Ready | 108+ tests, high coverage |
 

@@ -490,3 +490,29 @@ it('safeApply falls back on overlapping ops without throwing', () => {
 6. **Error Reporting**: Automated error tracking and analytics
 
 This comprehensive error handling strategy ensures Promptpad remains functional and user-friendly even when facing network issues, service outages, or unexpected failures.
+
+## Normalization Pipeline Interaction
+
+The dual-layer normalization (heuristic regex stripping + optional semantic cleanup generation) integrates with error handling without introducing new failure surfaces:
+
+### Failure Flow Rules
+1. If the primary model generation fails → endpoint returns structured error; cleanup is never attempted.
+2. If heuristic pass completes but cleanup trigger conditions are met and the secondary (semantic) cleanup generation errors or times out → we log the failure, discard the cleanup attempt, and return the heuristically cleaned primary output (no user-facing error state).
+3. Usage accounting only aggregates successful generations. Failed cleanup attempts do not overwrite previously recorded usage.
+4. Reinforce patch integrity: Cleanup pass never mutates patch ops or computes diffs—only post-processes full-string outputs for refine/spec; reinforce cleanup is applied to the improved full text after patch creation.
+
+### Idempotency & Safety Guardrails
+- Heuristic patterns must be idempotent (reapplying yields same output).
+- Only remove meta framing, boilerplate acknowledgments, redundant markdown headers, surrounding quotes, and trailing self-evaluation paragraphs.
+- Never strip user-provided content inside the core body (avoid broad greedy patterns spanning multiple paragraphs).
+- Add or modify a heuristic → accompany with a targeted test that asserts both removal of the undesired pattern and preservation of adjacent legitimate text.
+
+### Error Classification
+- Cleanup generation failure is treated as a soft warning (debug log) not an operational error; it should not trip user-visible error states or retries.
+- Heuristic execution is synchronous & deterministic; failures here would indicate a programming error and should be covered by unit tests (no runtime try/catch needed under normal conditions).
+
+### Logging
+- When cleanup generation is skipped (no trigger), optionally log at debug level for traceability during development.
+- On semantic cleanup failure, include: mode, model, elapsed ms, and truncated first 80 chars of the primary output for forensic context.
+
+These integration principles ensure normalization enhances consistency without degrading resilience.
