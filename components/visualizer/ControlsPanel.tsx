@@ -35,7 +35,6 @@ export default function ControlsPanel({ value, onChange }: { value?: Partial<Con
         setState((s) => ({ ...s, ...parsed }))
       }
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // persist and notify
