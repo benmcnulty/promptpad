@@ -11,6 +11,12 @@ const NAVIGATION_ITEMS = [
     description: 'Refine, reinforce, and spec generation'
   },
   {
+    id: 'agent-editor',
+    label: 'Agent Editor',
+    href: '/agent-editor',
+    description: 'Multi-agent workflow designer'
+  },
+  {
     id: 'dimensional-visualizer', 
     label: 'Dimensional Visualizer',
     href: '/dimensional-visualizer',
@@ -55,7 +61,7 @@ export default function AppHeader() {
         </div>
 
         {/* Navigation tabs */}
-        <nav className="flex items-center space-x-1" role="tablist">
+        <nav className="flex items-center space-x-1" role="navigation">
           {NAVIGATION_ITEMS.map((item) => {
             const isActive = !pathname || pathname === '/' 
               ? item.id === 'prompt-enhancer' 
@@ -73,8 +79,7 @@ export default function AppHeader() {
                     ? 'bg-white/50 text-slate-700 hover:bg-white/70 hover:text-slate-900 border border-white/30 shadow-soft backdrop-blur-sm'
                     : 'bg-white/50 text-slate-700 hover:bg-white/70 hover:text-slate-900 border border-white/30 shadow-soft backdrop-blur-sm'
                 }`}
-                role="tab"
-                aria-selected={isActive}
+                aria-current={isActive ? 'page' : undefined}
               >
                 <span>{item.label}</span>
                 {isComingSoon && (

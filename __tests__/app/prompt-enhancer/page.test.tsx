@@ -1,27 +1,11 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { render } from '@/__tests__/utils/test-providers'
 import PromptEnhancerPage from '@/app/prompt-enhancer/page'
-import { ThemeProvider } from '@/components/ThemeProvider'
-import { ModelProvider } from '@/components/ModelProvider'
-import { DebugProvider } from '@/components/DebugProvider'
-import { WelcomeProvider } from '@/components/WelcomeProvider'
 
 // Mock Next.js navigation hooks
 jest.mock('next/navigation', () => ({
   usePathname: () => '/prompt-enhancer'
 }))
-
-// Wrapper with all required providers
-const AllProvidersWrapper = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider>
-    <ModelProvider>
-      <DebugProvider>
-        <WelcomeProvider>
-          {children}
-        </WelcomeProvider>
-      </DebugProvider>
-    </ModelProvider>
-  </ThemeProvider>
-)
 
 describe('Prompt Enhancer Page', () => {
   beforeEach(() => {
@@ -31,9 +15,7 @@ describe('Prompt Enhancer Page', () => {
 
   it('renders the welcome modal initially', () => {
     render(
-      <AllProvidersWrapper>
-        <PromptEnhancerPage />
-      </AllProvidersWrapper>
+      <PromptEnhancerPage />, { wrapper: 'all' }
     )
     
     // Welcome modal should be visible initially
@@ -44,9 +26,7 @@ describe('Prompt Enhancer Page', () => {
 
   it('renders the Promptpad application shell after dismissing welcome modal', async () => {
     render(
-      <AllProvidersWrapper>
-        <PromptEnhancerPage />
-      </AllProvidersWrapper>
+      <PromptEnhancerPage />, { wrapper: 'all' }
     )
     
     // Dismiss the welcome modal
@@ -70,9 +50,7 @@ describe('Prompt Enhancer Page', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
     
     render(
-      <AllProvidersWrapper>
-        <PromptEnhancerPage />
-      </AllProvidersWrapper>
+      <PromptEnhancerPage />, { wrapper: 'all' }
     )
     
     // Text areas should be enabled 
@@ -90,9 +68,7 @@ describe('Prompt Enhancer Page', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
     
     render(
-      <AllProvidersWrapper>
-        <PromptEnhancerPage />
-      </AllProvidersWrapper>
+      <PromptEnhancerPage />, { wrapper: 'all' }
     )
     
     // Should show token counts (initially 0)
@@ -105,9 +81,7 @@ describe('Prompt Enhancer Page', () => {
 
   it('displays welcome modal with setup instructions', () => {
     render(
-      <AllProvidersWrapper>
-        <PromptEnhancerPage />
-      </AllProvidersWrapper>
+      <PromptEnhancerPage />, { wrapper: 'all' }
     )
     
     expect(screen.getByText('Welcome to Promptpad')).toBeInTheDocument()
@@ -120,9 +94,7 @@ describe('Prompt Enhancer Page', () => {
     localStorage.setItem('promptpad-welcome-dismissed', 'true')
     
     render(
-      <AllProvidersWrapper>
-        <PromptEnhancerPage />
-      </AllProvidersWrapper>
+      <PromptEnhancerPage />, { wrapper: 'all' }
     )
     
     // Main content should be present

@@ -35,9 +35,9 @@ describe('RootLayout', () => {
     // Should include Promptpad title
     expect(screen.getByRole('heading', { name: 'Promptpad', level: 1 })).toBeInTheDocument()
     
-    // Should include navigation tabs
-    expect(screen.getByRole('tab', { name: /Prompt Enhancer/ })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /Dimensional Visualizer/ })).toBeInTheDocument()
+    // Should include navigation links
+    expect(screen.getByRole('link', { name: /Prompt Enhancer/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Dimensional Visualizer/ })).toBeInTheDocument()
   })
 
   it('includes status bar footer', () => {

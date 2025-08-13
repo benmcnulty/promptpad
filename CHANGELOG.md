@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Added
+- Dimensional Visualizer demo with Word Cluster Builder (3D cluster navigation with 2D canvas renderer and optional R3F 3D mode)
+- API endpoints for clustering workflows: `POST /api/word-cluster` and `POST /api/expand-cluster` with deterministic mock mode and graceful fallbacks
+- Vectorization utilities (`lib/vectorization`) and 2D visualizer (`components/visualizer/Visualizer2D`)
+- Cluster generation and network management hooks (`hooks/useClusterGeneration`, `hooks/useClusterNetwork`)
 - Two-phase refinement pipeline with optional LLM cleanup pass (normalizes outputs across heterogeneous local models; second pass triggered heuristically only when meta wrappers detected)
   - Expanded heuristic patterns (polite prefaces, curly quotes, meta commentary) and low-temperature semantic normalization pass
   - Documentation updates (README, LLM processes) reflecting multi-pass design and cleanup strategy
@@ -59,6 +63,7 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 - Comprehensive development coordination system for maintaining system invariants
 
 ### Changed
+- Status monitoring polling now every 30 seconds with visibility awareness (was documented previously as 10 seconds)
 - Tooltip: avoid focus-triggered positioning to prevent `NaN` style values in Next.js during text input
 - CLI docs: recommend passing CLI output as argument to Claude, e.g., `claude "$(promptpad refine 'Build a todo app.')"`
 - Strengthened `/api/refine` error logging; fixed catch-scope reference for robust logging when JSON parsing fails

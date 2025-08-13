@@ -181,8 +181,12 @@ function generateMockWords(prompt: string, parentWord?: string): string[] {
     .filter(w => w.length > 2)
     .slice(0, 4)
 
-  const combined = [...baseWords.slice(0, 8), ...inputWords]
-  return combined.slice(0, 12)
+  // Start from a full set of 12 and overlay input-derived words for variability
+  const result = [...baseWords.slice(0, 12)]
+  for (let i = 0; i < inputWords.length && i < 12; i++) {
+    result[i] = inputWords[i]
+  }
+  return result.slice(0, 12)
 }
 
 function generateClusterId(): string {

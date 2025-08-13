@@ -1,25 +1,16 @@
 import React from 'react'
-import { render, fireEvent, screen, act } from '@testing-library/react'
+import { fireEvent, screen, act } from '@testing-library/react'
+import { render, mockFetch, mockModelsData } from '@/__tests__/utils/test-providers'
 import StatusBar from '@/components/StatusBar'
-import { ModelProvider } from '@/components/ModelProvider'
-import { ThemeProvider } from '@/components/ThemeProvider'
 
 describe('ModelDropdown', () => {
   beforeEach(() => {
     localStorage.clear()
-    // Mock fetch for /api/models
-    // @ts-ignore
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ([
-        { name: 'gpt-oss:20b', family: 'gpt-oss', parameters: '20b', default: true },
-        { name: 'llama3.1:8b', family: 'llama', parameters: '8b' },
-      ]),
-    })
+    mockFetch(mockModelsData)
   })
 
   it('shows default model and updates preference on select', async () => {
-  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
+    render(<StatusBar />, { wrapper: 'model' })
 
     // Default label should be visible
     expect(await screen.findByTitle(/select model/i)).toBeInTheDocument()

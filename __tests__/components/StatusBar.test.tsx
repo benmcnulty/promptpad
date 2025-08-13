@@ -1,7 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import { render } from '@/__tests__/utils/test-providers'
 import StatusBar from '@/components/StatusBar'
-import { ThemeProvider } from '@/components/ThemeProvider'
-import { ModelProvider } from '@/components/ModelProvider'
 
 // Mock fetch for component tests
 const mockFetch = jest.fn()
@@ -24,7 +23,7 @@ describe('StatusBar', () => {
       json: async () => ({ models: [{ name: 'gpt-oss:20b' }] }),
     })
 
-  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
+  render(<StatusBar />, { wrapper: 'model' })
     
     // Check for status bar role
     expect(screen.getByRole('status')).toBeInTheDocument()
@@ -36,9 +35,9 @@ describe('StatusBar', () => {
       expect(screen.getByText('abc1234')).toBeInTheDocument()
     })
     
-    // Check for default model display
-    expect(screen.getByText('Model:')).toBeInTheDocument()
-    expect(screen.getByText('gpt-oss:20b')).toBeInTheDocument()
+  // Check for default model display (substring match to allow endpoint label variants)
+  expect(screen.getByText('Model:')).toBeInTheDocument()
+  expect(screen.getByText(/gpt-oss:20b/)).toBeInTheDocument()
     
     // Check for Ollama status
     expect(screen.getByText('Ollama:')).toBeInTheDocument()
@@ -67,7 +66,7 @@ describe('StatusBar', () => {
       }), 100))
     )
 
-  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
+  render(<StatusBar />, { wrapper: 'model' })
     
     // Should show checking status initially
     expect(screen.getByText('Checking...')).toBeInTheDocument()
@@ -89,7 +88,7 @@ describe('StatusBar', () => {
     // Second call: /api/models fails
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
+  render(<StatusBar />, { wrapper: 'model' })
 
     await waitFor(() => {
       expect(screen.getByText('Error')).toBeInTheDocument()
@@ -107,7 +106,7 @@ describe('StatusBar', () => {
     // Second: /api/models error
     mockFetch.mockResolvedValueOnce({ ok: false, status: 503 })
 
-  render(<ThemeProvider><ModelProvider><StatusBar /></ModelProvider></ThemeProvider>)
+  render(<StatusBar />, { wrapper: 'model' })
 
     await waitFor(() => {
       expect(screen.getByText('Error')).toBeInTheDocument()
@@ -124,7 +123,7 @@ describe('StatusBar', () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ models: [] }) })
 
     const customClass = 'custom-status-bar'
-  const { container } = render(<ThemeProvider><ModelProvider><StatusBar className={customClass} /></ModelProvider></ThemeProvider>)
+  const { container } = render(<StatusBar className={customClass} />, { wrapper: 'model' })
     
     expect(container.firstChild).toHaveClass(customClass)
   })

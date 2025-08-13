@@ -1,19 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { render } from '@/__tests__/utils/test-providers'
 import PromptEnhancerPage from '@/app/prompt-enhancer/page'
-import { ThemeProvider } from '@/components/ThemeProvider'
-import { ModelProvider } from '@/components/ModelProvider'
-import { DebugProvider, useDebug } from '@/components/DebugProvider'
-import { WelcomeProvider } from '@/components/WelcomeProvider'
-
-const Providers = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider>
-    <ModelProvider>
-      <DebugProvider>
-        <WelcomeProvider>{children}</WelcomeProvider>
-      </DebugProvider>
-    </ModelProvider>
-  </ThemeProvider>
-)
+import { useDebug } from '@/components/DebugProvider'
 
 // Mock refine hook with deterministic output
 jest.mock('@/hooks/useRefine', () => ({
@@ -35,7 +23,7 @@ describe('Prompt Enhancer – Debug panel', () => {
   })
 
   it('toggles debug panel and logs request', async () => {
-    render(<Providers><PromptEnhancerPage /></Providers>)
+    render(<PromptEnhancerPage />, { wrapper: 'all' })
 
     // There is no dedicated debug toggle exposed directly in page; simulate log via refine
     const input = screen.getByLabelText('Prompt input area')

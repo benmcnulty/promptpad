@@ -97,6 +97,12 @@ graph LR
 - **⚡ Loading Animations**: Geometric animations with dynamic color theming
 - **🎭 Accessibility**: Full WCAG compliance with keyboard navigation
 
+### 🧭 Dimensional Visualizer (Demo)
+- **🔗 Word Cluster Builder**: Generate 12-word semantic clusters from a prompt and expand by word
+- **🗺️ Vectorization**: Deterministic 3D positions visualized via 2D canvas; optional 3D (R3F) with `NEXT_PUBLIC_ENABLE_R3F=1`
+- **🧩 Modular Layouts**: Spherical, grid, organic, radial, hierarchical arrangements for clusters
+- **🧵 Persistent Navigation**: Cluster networks persisted in `localStorage` with breadcrumb navigation
+
 ### 🔧 Developer Experience
 - **🧪 Extensive Automated Tests**: 150+ tests across API, UI, hooks, and core libraries (diff, history, tokens)
 - **📝 TypeScript**: Complete type safety and IntelliSense support
@@ -360,6 +366,49 @@ Returns current git commit information for version tracking.
   timestamp: string      // ISO timestamp
 }
 ```
+
+#### `POST /api/word-cluster`
+
+Generates exactly 12 related words for a given prompt (or parent word when expanding).
+
+Request Body:
+```typescript
+{
+  prompt: string,
+  parentWord?: string,
+  parentClusterId?: string,
+  model: string,
+  temperature: number
+}
+```
+
+Response:
+```typescript
+{
+  words: string[],        // Exactly 12
+  clusterId: string,
+  usage: { input_tokens: number, output_tokens: number },
+  systemPrompt?: string,
+  fallbackUsed?: boolean
+}
+```
+
+#### `POST /api/expand-cluster`
+
+Expands a selected word into a new 12-word cluster within the context of the original prompt.
+
+Request Body:
+```typescript
+{
+  word: string,
+  parentClusterId: string,
+  originalPrompt: string,
+  model: string,
+  temperature: number
+}
+```
+
+Response: Same shape as `/api/word-cluster`.
 
 ---
 

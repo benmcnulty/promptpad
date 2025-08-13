@@ -3,18 +3,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@/components/ThemeProvider'
 import { useDebug } from '@/components/DebugProvider'
+import { useOllamaEndpoints } from '@/components/OllamaEndpointProvider'
 import ThemeDropdown from '@/components/ThemeDropdown'
 import ModelDropdown from '@/components/ModelDropdown'
 import DebugTerminal from '@/components/shared/DebugTerminal'
+import OllamaEndpointSlideout from '@/components/OllamaEndpointSlideout'
 
 export default function AppFooter() {
   const [gitSha, setGitSha] = useState<string>('loading...')
-  const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'connected' | 'error'>('checking')
-  const inFlight = useRef<AbortController | null>(null)
-  const intervalId = useRef<number | null>(null)
+  const [showEndpointSlideout, setShowEndpointSlideout] = useState(false)
   const mounted = useRef<boolean>(false)
   const { theme, toggleTheme } = useTheme()
   const { showDebug, setShowDebug } = useDebug()
+  const { endpoints, getHealthyEndpoints } = useOllamaEndpoints()
 
   useEffect(() => {
     // Get git SHA from build time or runtime
@@ -32,69 +33,43 @@ export default function AppFooter() {
         setGitSha('0327471')
       }
     }
-    getGitSha()
     
-    // Check Ollama connection via API
     if (mounted.current) return
     mounted.current = true
-
-    const checkOllamaStatus = async () => {
-      if (inFlight.current) {
-        inFlight.current.abort()
-        inFlight.current = null
-      }
-      setOllamaStatus('checking')
-      const ctrl = new AbortController()
-      inFlight.current = ctrl
-      try {
-        const response = await fetch('/api/models', { signal: ctrl.signal })
-        if (response.ok) setOllamaStatus('connected')
-        else setOllamaStatus('error')
-      } catch (error) {
-        setOllamaStatus('error')
-      } finally {
-        inFlight.current = null
-      }
-    }
-
-    // Initial check
-    checkOllamaStatus()
-
-    // Poll every 30 seconds with simple visibility-aware behavior
-    const startPolling = () => {
-      if (intervalId.current !== null) return
-      intervalId.current = window.setInterval(() => {
-        if (document.hidden) return
-        checkOllamaStatus()
-      }, 30000)
-    }
-    const stopPolling = () => {
-      if (intervalId.current !== null) {
-        clearInterval(intervalId.current)
-        intervalId.current = null
-      }
-    }
-
-    const onVisibility = () => {
-      if (document.hidden) stopPolling()
-      else startPolling()
-    }
-
-    document.addEventListener('visibilitychange', onVisibility)
-    startPolling()
+    
+    getGitSha()
 
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      stopPolling()
-      if (inFlight.current) inFlight.current.abort()
       mounted.current = false
     }
   }, [])
+
+  // Calculate aggregated Ollama status from all endpoints
+  const getAggregatedOllamaStatus = () => {
+    const healthyEndpoints = getHealthyEndpoints()
+    const hasChecking = endpoints.some(ep => ep.healthStatus === 'checking')
+    const hasError = endpoints.some(ep => ep.healthStatus === 'error')
+    const hasHealthy = healthyEndpoints.length > 0
+
+    if (hasChecking && !hasHealthy) return 'checking'
+    if (hasHealthy) return 'connected'
+    if (hasError) return 'error'
+    return 'checking'
+  }
+
+  const aggregatedStatus = getAggregatedOllamaStatus()
+  const healthyCount = getHealthyEndpoints().length
 
   return (
     <>
       {/* Debug Terminal */}
       <DebugTerminal />
+      
+      {/* Ollama Endpoint Management Slideout */}
+      <OllamaEndpointSlideout 
+        isOpen={showEndpointSlideout} 
+        onClose={() => setShowEndpointSlideout(false)} 
+      />
       
       {/* Status Bar Footer */}
       <footer 
@@ -122,25 +97,37 @@ export default function AppFooter() {
 
         <div className="flex items-center space-x-3">
           <span className="text-slate-600 font-medium">Ollama:</span>
-          <div className="flex items-center bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-md border border-white/40 shadow-soft">
+          <button
+            type="button"
+            onClick={() => setShowEndpointSlideout(true)}
+            className="flex items-center bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-md border border-white/40 shadow-soft hover:bg-white/80 hover:shadow-lg transition-all duration-200 cursor-pointer"
+            title={`${healthyCount}/${endpoints.length} endpoints healthy - Click to manage`}
+          >
             <div 
               className={`w-2.5 h-2.5 rounded-full mr-2.5 transition-all duration-300 status-indicator ${
-                ollamaStatus === 'connected' 
+                aggregatedStatus === 'connected' 
                   ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30 status-connected' 
-                  : ollamaStatus === 'error'
+                  : aggregatedStatus === 'error'
                   ? 'bg-red-500 shadow-lg shadow-red-500/30 animate-gentle-bounce'
                   : 'bg-amber-500 animate-pulse shadow-lg shadow-amber-500/30 checking'
               }`}
-              aria-label={`Ollama status: ${ollamaStatus}`}
+              aria-label={`Ollama status: ${aggregatedStatus}`}
             />
-            <span className="capitalize font-medium text-slate-700">
-              {ollamaStatus === 'checking' ? 'Checking...' : 
-               ollamaStatus === 'connected' ? 'Connected' : 'Error'}
+            <span className="capitalize font-medium text-slate-700 mr-2">
+              {aggregatedStatus === 'checking' ? 'Checking...' : 
+               aggregatedStatus === 'connected' ? 'Connected' : 'Error'}
             </span>
-          </div>
+            <span className="text-xs text-slate-500 bg-white/40 px-1.5 py-0.5 rounded font-medium">
+              {healthyCount}/{endpoints.length}
+            </span>
+            <svg className="w-3 h-3 ml-1.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </button>
           
           {/* Theme toggle */}
           <button
+            type="button"
             onClick={toggleTheme}
             className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1 bg-white/60 text-slate-600 hover:bg-white/80 border border-white/40"
             title="Toggle light/dark mode"
@@ -161,6 +148,7 @@ export default function AppFooter() {
 
           {/* Debug Toggle */}
           <button
+            type="button"
             onClick={() => setShowDebug(!showDebug)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1 ${
               showDebug 
