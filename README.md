@@ -43,18 +43,18 @@ Promptpad implements a **two-layer refinement workflow** for drafting plus an *i
 
 ```mermaid
 graph LR
-  A[Brief Idea] --> B[Refine (Primary Gen)]
+  A[Brief Idea] --> B[Refine Primary Gen]
   B --> B2{Heuristic?}
   B2 -- yes --> B3[LLM Cleanup Pass]
   B2 -- no --> C
   B3 --> C[Detailed Prompt]
-  C --> D[Edit & Review]
-  D --> E[Reinforce (Optimize)]
+  C --> D[Edit and Review]
+  D --> E[Reinforce Optimize]
   E --> E2{Heuristic?}
   E2 -- yes --> E3[LLM Cleanup Pass]
   E2 -- no --> F
   E3 --> F[Production Prompt]
-  F --> G[Copy / Spec]
+  F --> G[Copy or Spec]
   A --> S[Spec Mode] --> S2{Heuristic?} --> S3[Cleanup] --> F
 ```
 
