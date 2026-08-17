@@ -6,7 +6,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.4.6-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-156%20passing-brightgreen)](https://github.com/yourusername/promptpad)
+[![Tests](https://img.shields.io/badge/Tests-156%20passing-brightgreen)](https://github.com/benmcnulty/promptpad)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **[Demo](#-quick-start)** • **[Features](#-production-features)** • **[Installation](#-installation)** • **[CLI](#-command-line-cli)** • **[Documentation](#-documentation)** • **[Contributing](#-contributing)**
@@ -24,7 +24,7 @@
 ollama pull gpt-oss:20b
 
 # 2. Clone and setup Promptpad
-git clone https://github.com/yourusername/promptpad.git
+git clone https://github.com/benmcnulty/promptpad.git
 cd promptpad
 pnpm install
 
@@ -72,9 +72,10 @@ graph LR
 
 4. **💪 Reinforce** → AI optimizes your edited draft for maximum effectiveness  
   *Tightens language, improves clarity, enhances structure* (also eligible for the heuristic cleanup pass)
-6. **🛠 Spec (Optional)** → Generate a concise, actionable project specification from an idea (also normalized if meta detected)
 
-5. **📋 Copy** with one-click clipboard integration  
+5. **🛠 Spec (Optional)** → Generate a concise, actionable project specification from an idea (also normalized if meta detected)
+
+6. **📋 Copy** with one-click clipboard integration  
    *Ready to paste into any AI tool*
 
 ---
@@ -140,7 +141,7 @@ ollama serve
 ollama pull gpt-oss:20b
 
 # Clone repository
-git clone https://github.com/yourusername/promptpad.git
+git clone https://github.com/benmcnulty/promptpad.git
 cd promptpad
 
 # Install dependencies
@@ -312,7 +313,7 @@ Primary endpoint for prompt refinement operations.
 **Request Body:**
 ```typescript
 {
-  mode: "refine" | "reinforce",
+  mode: "refine" | "reinforce" | "spec",
   input?: string,          // Required for refine mode
   draft?: string,          // Required for reinforce mode
   model: string,           // e.g., "gpt-oss:20b"
@@ -545,7 +546,7 @@ We welcome contributions! Here's how to get started:
 ```bash
 # 1. Fork the repository on GitHub
 # 2. Clone your fork
-git clone https://github.com/yourusername/promptpad.git
+git clone https://github.com/benmcnulty/promptpad.git
 cd promptpad
 
 # 3. Install dependencies
@@ -665,10 +666,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Ready to transform your ideas into polished prompts?** 🚀
 
 ```bash
-git clone https://github.com/yourusername/promptpad.git && cd promptpad && pnpm install && pnpm dev
+git clone https://github.com/benmcnulty/promptpad.git && cd promptpad && pnpm install && pnpm dev
 ```
 
-**[⭐ Star on GitHub](https://github.com/yourusername/promptpad)** • **[🐛 Report Bug](https://github.com/yourusername/promptpad/issues)** • **[💡 Request Feature](https://github.com/yourusername/promptpad/issues)**
+**[⭐ Star on GitHub](https://github.com/benmcnulty/promptpad)** • **[🐛 Report Bug](https://github.com/benmcnulty/promptpad/issues)** • **[💡 Request Feature](https://github.com/benmcnulty/promptpad/issues)**
 
 *Built with ❤️ for the AI community*
 
