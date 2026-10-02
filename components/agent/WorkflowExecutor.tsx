@@ -102,7 +102,7 @@ export default function WorkflowExecutor({
           const result = await client.generate(
             callpoint.modelName,
             `${callpoint.systemInstructions}\n\n${input}`,
-            { temperature: callpoint.temperature || 0.2 }
+            { temperature: callpoint.temperature ?? 0.2 }
           )
 
           // Store the result

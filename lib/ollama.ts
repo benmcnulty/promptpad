@@ -245,7 +245,7 @@ export class OllamaClient {
     options: { temperature?: number } = {}
   ): Promise<{ text: string; usage: UsageStats }> {
     // Enforce temperature constraint
-    const temperature = Math.min(options.temperature || 0.2, 0.3)
+    const temperature = Math.min(options.temperature ?? 0.2, 0.3)
     
     try {
       const requestBody: OllamaGenerateRequest = {

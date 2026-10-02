@@ -24,3 +24,40 @@ tests (2 skipped), production build and CLI help. Global coverage remains red at
 
 The added CI uses read-only contents permission, mock inference and no deployment
 steps. It preserves the current coverage threshold and reports its failure.
+
+### Focused regression assurance follow-up
+
+- Ownership: isolated `fix/regression-assurance-2026-10-02` checkout, based exactly
+  on frozen `349865dbd10491ee6852e3c5905c4777b1619173`; parent integrates the reviewed
+  candidate. No remote writes, merge, release, deployment or live provider calls.
+- Replaced the skipped builder suite with actual editor/callpoint/executor and
+  browser-storage flows. Added coverage of save quota errors, import validation,
+  repeated execution after failure, tagged model selection and zero temperature.
+- Added route/adapter tests with mocked fetch for cluster parsing, padding,
+  capped temperature, development fallback, production service errors,
+  malformed requests and rejection of forbidden endpoint destinations.
+- Added navigation/effects/theme/endpoint-control tests and word-network flows
+  that exercise the real generation and persistence hooks, failed expansion,
+  retry, remount and clearing during a pending request.
+- Added GPU-boundary tests using real Three objects and mounted React components
+  for scene grouping, missing-edge filtering, event identity, instance matrices,
+  animation transforms, loading and fallback recovery. Canvas tests assert draw
+  commands, reduced motion and animation cleanup. These do not prove WebGL pixels,
+  GPU compatibility, real inference quality or physical browser accessibility.
+- Small fixes motivated by those regressions: collapse synchronization feedback,
+  model-tag truncation, zero-temperature fallback, empty depth, breadcrumb
+  off-by-one, visual word callbacks and instance setup before ref mount.
+- API response and patch schemas, endpoint allowlist, dependencies, licenses,
+  workflows and coverage configuration remain unchanged.
+- Coordinator-approved sequential checks passed: 66 suites / 293 tests, zero
+  skips; coverage, typecheck, lint with no warnings, and production build.
+  Global coverage (excluding separately gated core paths, as Jest does):
+  85.98% statements, 74.53% branches, 87.58% lines, 86.71% functions, up from
+  58.71/48.48/59.90/49.17. All existing core and global gates pass unchanged.
+- Build retains baseline warnings for missing server tiktoken WASM (heuristic
+  counting fallback) and stale Browserslist data. CLI entry remains at 0% in
+  Jest's coverage report; its separate help check is not counted as that coverage.
+- Initial route tests exposed zero temperature being defaulted in the shared
+  adapter as well; nullish defaulting now preserves zero. Harness fixture/selector
+  and test typing errors were corrected, then checks rerun without weakening the
+  assertions. No real inference, browser rendering or GPU compatibility claim.

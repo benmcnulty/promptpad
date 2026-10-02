@@ -6,6 +6,9 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
 ### Fixed
+- Stop agent collapse synchronization from looping; preserve tagged model names and zero temperature in editor execution.
+- Keep empty-network depth finite, return to the selected breadcrumb, and expand words clicked in the visual word list.
+- Initialize vector instance positions after their scene refs mount.
 - Honor server/CLI Ollama URL and timeout settings in the primary adapter. Route model catalogs, primary generation and cleanup to the selected endpoint, limited to operator-approved destinations (proposed ADR 001).
 - List installed models without inventing an absent default; reject removed or unapproved endpoint selections before generation or fallback.
 - Stabilize health/catalog effects, retain removed selections until a deliberate replacement, and check connection status against the selected route.
@@ -13,6 +16,7 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 - Launch the installed CLI runtime through Node and compare its entry-point URL portably on Windows.
 
 ### Added
+- Regression tests for real workflow editing/persistence/execution, cluster API failures, network navigation and interrupted generation; GPU/canvas boundary tests for scene data and animation logic.
 - Dimensional Visualizer demo with Word Cluster Builder (3D cluster navigation with 2D canvas renderer and optional R3F 3D mode)
 - API endpoints for clustering workflows: `POST /api/word-cluster` and `POST /api/expand-cluster` with deterministic mock mode and graceful fallbacks
 - Vectorization utilities (`lib/vectorization`) and 2D visualizer (`components/visualizer/Visualizer2D`)

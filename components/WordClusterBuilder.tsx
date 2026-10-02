@@ -190,10 +190,7 @@ export default function WordClusterBuilder() {
                   isLoading={generation.state.loading}
                   loadingStep={generation.state.step}
                   loadingProgress={generation.state.progress}
-                  onWordClick={(word, clusterId) => {
-                    // Handle word clicks in visualization
-                    console.log('Word clicked:', word, 'in cluster:', clusterId)
-                  }}
+                  onWordClick={handleExpandWord}
                 />
                 
                 {/* Visualization Info */}
