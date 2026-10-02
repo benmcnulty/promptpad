@@ -99,12 +99,11 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       
       // Ensure selected model is valid; otherwise prefer default if present
       const hasSelected = allModels.some(m => m.name === selectedModel && m.endpointId === selectedEndpointId)
-      const hasDefault = allModels.some(m => m.name === DEFAULT_MODEL)
-      if (!hasSelected && hasDefault) {
-        const defaultModel = allModels.find(m => m.name === DEFAULT_MODEL)
-        setSelected(DEFAULT_MODEL)
-        if (defaultModel?.endpointId) {
-          setSelectedEndpointId(defaultModel.endpointId)
+      if (!hasSelected && allModels.length) {
+        const available = allModels.find(m => m.name === DEFAULT_MODEL) || allModels[0]
+        setSelected(available.name)
+        if (available.endpointId) {
+          setSelectedEndpointId(available.endpointId)
         }
       }
     } catch (err) {

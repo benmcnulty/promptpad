@@ -27,7 +27,7 @@ describe('GET /api/models (extended)', () => {
   it('does not advertise the default model when it is not installed', async () => {
     ollama.listModels.mockResolvedValueOnce([{ name: 'llama3.2:8b' }])
     const { GET } = await import('@/app/api/models/route')
-    const res: any = await GET()
+    const res: any = await GET({ headers: { get: () => null } } as unknown as Request)
     const data = await res.json()
     expect(data.map((m: any) => m.name)).toEqual(['llama3.2:8b'])
     expect(data.find((m: any) => m.name === 'gpt-oss:20b')).toBeUndefined()
@@ -36,7 +36,7 @@ describe('GET /api/models (extended)', () => {
   it('marks existing default', async () => {
     ollama.listModels.mockResolvedValueOnce([{ name: 'gpt-oss:20b' }, { name: 'llama3.2:8b' }])
     const { GET } = await import('@/app/api/models/route')
-    const res: any = await GET()
+    const res: any = await GET({ headers: { get: () => null } } as unknown as Request)
     const data = await res.json()
     const def = data.find((m: any) => m.name === 'gpt-oss:20b')
     expect(def.default).toBe(true)
@@ -45,7 +45,7 @@ describe('GET /api/models (extended)', () => {
   it('gracefully handles error and returns default array', async () => {
     ollama.listModels.mockRejectedValueOnce(new OllamaError('fail'))
     const { GET } = await import('@/app/api/models/route')
-    const res: any = await GET()
+    const res: any = await GET({ headers: { get: () => null } } as unknown as Request)
     expect(res.status).toBe(503)
     const data = await res.json()
     expect(data[0].name).toBe('gpt-oss:20b')

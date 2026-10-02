@@ -25,7 +25,7 @@ describe('GET /api/models (generic error path)', () => {
   it('returns 500 on non-OllamaError', async () => {
     ollama.listModels.mockRejectedValueOnce(new Error('boom'))
     const { GET } = await import('@/app/api/models/route')
-    const res: any = await GET()
+    const res: any = await GET({ headers: { get: () => null } } as unknown as Request)
     expect(res.status).toBe(500)
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)

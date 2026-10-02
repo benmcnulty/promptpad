@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
  * Returns an array of available models per frozen contract.
  * Shape: Array<{ name: string, family: string, parameters: string, default?: boolean }>
  */
-export async function GET(req?: Request) {
+export async function GET(req: Request) {
   try {
     const client = getServerOllama(req)
     // Mock mode for CI and local development without Ollama

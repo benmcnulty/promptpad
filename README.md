@@ -70,8 +70,8 @@ Run the app on a trusted local machine/network. It has no production authenticat
 ```sh
 pnpm typecheck
 pnpm lint
-pnpm test --runInBand
-pnpm test:coverage --runInBand
+pnpm run test --runInBand
+pnpm run test:coverage --runInBand
 pnpm build
 pnpm start
 node bin/promptpad.cjs --help
@@ -89,6 +89,8 @@ The CLI can also be run directly with `pnpm exec tsx lib/cli/index.ts --help`. T
 - Spec progress tracks the request/response lifecycle; it does not report separate architecture or security analysis jobs.
 - The visualizer and browser endpoint tooling are experiments. Mobile, keyboard, screen-reader and optional 3D behavior need further verification.
 - CLI and web cleanup pipelines are not identical; global CLI options and inference behavior need further integration coverage.
+- The 2026-10-02 Windows build warned that the server-side tiktoken WASM file was missing and used heuristic counting. Treat displayed token counts as estimates.
+- The configured global coverage gate remains unmet in the baseline and this candidate. Core diff/history/token thresholds pass; see the dated verification receipt for the exact runs and remaining work.
 
 ## Contributing and license
 
