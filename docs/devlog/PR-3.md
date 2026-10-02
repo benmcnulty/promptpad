@@ -29,7 +29,8 @@ steps. It preserves the current coverage threshold and reports its failure.
 
 - Ownership: isolated `fix/regression-assurance-2026-10-02` checkout, based exactly
   on frozen `349865dbd10491ee6852e3c5905c4777b1619173`; parent integrates the reviewed
-  candidate. No remote writes, merge, release, deployment or live provider calls.
+  candidate. The parent-authorized candidate branch was published for independent
+  review. PR3 remains frozen; no merge, release, deployment or live provider calls.
 - Replaced the skipped builder suite with actual editor/callpoint/executor and
   browser-storage flows. Added coverage of save quota errors, import validation,
   repeated execution after failure, tagged model selection and zero temperature.
@@ -49,7 +50,7 @@ steps. It preserves the current coverage threshold and reports its failure.
   off-by-one, visual word callbacks and instance setup before ref mount.
 - API response and patch schemas, endpoint allowlist, dependencies, licenses,
   workflows and coverage configuration remain unchanged.
-- Coordinator-approved sequential checks passed: 66 suites / 293 tests, zero
+- Coordinator-approved sequential checks at `78846a7` passed: 66 suites / 293 tests, zero
   skips; coverage, typecheck, lint with no warnings, and production build.
   Global coverage (excluding separately gated core paths, as Jest does):
   85.98% statements, 74.53% branches, 87.58% lines, 86.71% functions, up from
@@ -61,3 +62,14 @@ steps. It preserves the current coverage threshold and reports its failure.
   adapter as well; nullish defaulting now preserves zero. Harness fixture/selector
   and test typing errors were corrected, then checks rerun without weakening the
   assertions. No real inference, browser rendering or GPU compatibility claim.
+
+### Independent-review correction: same-mounted workflow reload
+
+Expansion now derives directly from the workflow's `isCollapsed` field, with
+updates only on a user toggle. This prevents unsaved local expansion from
+overwriting a freshly loaded saved state or marking that load dirty. The added
+regression reloads a collapsed workflow twice without remounting its callpoint,
+then verifies the reverse expanded-state reload. Drawing tests restore the
+original `window.matchMedia` descriptor after each test. Validation of this
+follow-up awaits the coordinator's next local testing slot; results above apply
+to the prior candidate.

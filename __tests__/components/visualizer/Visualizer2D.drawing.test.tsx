@@ -21,7 +21,12 @@ function drawingContext() {
 }
 
 describe('2D projection drawing at the canvas boundary', () => {
-  afterEach(() => jest.restoreAllMocks())
+  const originalMatchMedia = Object.getOwnPropertyDescriptor(window, 'matchMedia')
+  afterEach(() => {
+    jest.restoreAllMocks()
+    if (originalMatchMedia) Object.defineProperty(window, 'matchMedia', originalMatchMedia)
+    else Reflect.deleteProperty(window, 'matchMedia')
+  })
 
   it('projects coordinates, filters broken edges and sizes the canvas for device pixels', () => {
     const ctx = drawingContext()

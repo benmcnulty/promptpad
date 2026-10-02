@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useModel } from '@/components/ModelProvider'
 import { useOllamaEndpoints } from '@/components/OllamaEndpointProvider'
 import { AgentCallpoint as AgentCallpointType } from '@/types/agent'
@@ -28,7 +28,7 @@ export default function AgentCallpoint({
 }: AgentCallpointProps) {
   const { getAllAvailableModels } = useModel()
   const { endpoints, getHealthyEndpoints } = useOllamaEndpoints()
-  const [isExpanded, setIsExpanded] = useState(!callpoint.isCollapsed)
+  const isExpanded = !callpoint.isCollapsed
 
   const allModels = getAllAvailableModels()
   const healthyEndpoints = getHealthyEndpoints()
@@ -49,15 +49,6 @@ export default function AgentCallpoint({
       return acc
     }, {} as Record<string, { label: string; models: typeof allModels }>)
   }, [allModels])
-
-  // Update collapsed state
-  useEffect(() => {
-    // The builder supplies a new callback on each render. Only publish a real
-    // change, otherwise parent and child continuously update one another.
-    if (callpoint.isCollapsed !== !isExpanded) {
-      onUpdate({ isCollapsed: !isExpanded })
-    }
-  }, [isExpanded, callpoint.isCollapsed, onUpdate])
 
   const getStatusIcon = () => {
     if (callpoint.isExecuting) {
@@ -137,7 +128,7 @@ export default function AgentCallpoint({
 
           {/* Collapse/Expand */}
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => onUpdate({ isCollapsed: !callpoint.isCollapsed })}
             className="p-1.5 hover:bg-white/60 rounded-md transition-colors text-slate-600 hover:text-slate-800"
             title={isExpanded ? "Collapse" : "Expand"}
           >

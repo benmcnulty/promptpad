@@ -59,7 +59,7 @@ describe('agent editor workflow regressions', () => {
     expect(mockGenerate).not.toHaveBeenCalled()
   })
 
-  it('preserves tagged models and zero temperature and does not loop on collapse synchronization', () => {
+  it('preserves tagged models and zero temperature when toggling persisted collapse state', () => {
     render(<AgentEditorPage />)
     add(1)
     change(agent(0).getAllByRole('combobox')[0], 'remote:llama3.1:8b')
@@ -73,6 +73,44 @@ describe('agent editor workflow regressions', () => {
     expect(screen.getByText('Unsaved changes')).toBeInTheDocument()
     change(agent(0).getAllByRole('combobox')[0], '')
     expect(screen.getByText(/missing endpoint\/model configuration/)).toBeInTheDocument()
+  })
+
+  it('restores saved collapse state on same-mounted reload without overwriting it or marking it dirty', () => {
+    render(<AgentEditorPage />)
+    add(1)
+    configure(0, 'Saved agent')
+    const nameInput = names()[0]
+    fireEvent.click(agent(0).getByTitle('Collapse'))
+    fireEvent.click(screen.getByTitle('Save workflow'))
+    const savedId = saved()[0].id
+    expect(saved()[0].callpoints[0].isCollapsed).toBe(true)
+    expect(screen.queryByText('Unsaved changes')).not.toBeInTheDocument()
+
+    fireEvent.click(agent(0).getByTitle('Expand'))
+    change(agent(0).getByPlaceholderText('Define the role and behavior for this agent...'), 'Unsaved instructions')
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument()
+    for (let reload = 0; reload < 2; reload++) {
+      fireEvent.click(screen.getByTitle('Load workflow'))
+      fireEvent.click(screen.getByRole('button', { name: 'Load' }))
+      expect(names()[0]).toBe(nameInput)
+      expect(agent(0).getByTitle('Expand')).toBeInTheDocument()
+      expect(agent(0).queryByPlaceholderText('Define the role and behavior for this agent...')).not.toBeInTheDocument()
+      expect(screen.queryByText('Unsaved changes')).not.toBeInTheDocument()
+      expect(saved()[0]).toMatchObject({ id: savedId, callpoints: [expect.objectContaining({ isCollapsed: true, systemInstructions: 'Instructions for Saved agent' })] })
+    }
+
+    fireEvent.click(agent(0).getByTitle('Expand'))
+    expect(agent(0).getByPlaceholderText('Define the role and behavior for this agent...')).toHaveValue('Instructions for Saved agent')
+    fireEvent.click(screen.getByTitle('Save workflow'))
+    expect(saved()[0].callpoints[0].isCollapsed).toBe(false)
+    fireEvent.click(agent(0).getByTitle('Collapse'))
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Load workflow'))
+    fireEvent.click(screen.getByRole('button', { name: 'Load' }))
+    expect(names()[0]).toBe(nameInput)
+    expect(agent(0).getByTitle('Collapse')).toBeInTheDocument()
+    expect(agent(0).getByPlaceholderText('Define the role and behavior for this agent...')).toHaveValue('Instructions for Saved agent')
+    expect(screen.queryByText('Unsaved changes')).not.toBeInTheDocument()
   })
 
   it('chains new agents, reorders their data and rewires deleted input sources', () => {
