@@ -19,6 +19,8 @@
  */
 
 import { program } from 'commander'
+import { pathToFileURL } from 'node:url'
+import { resolve } from 'node:path'
 import { refineCommand } from './commands/refine'
 import { reinforceCommand } from './commands/reinforce'
 import { specCommand } from './commands/spec'
@@ -99,7 +101,7 @@ process.on('uncaughtException', (error) => {
 })
 
 // Run CLI if executed directly (ES module compatible)
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch((error) => {
     console.error('❌ Fatal error:', error)
     process.exit(1)

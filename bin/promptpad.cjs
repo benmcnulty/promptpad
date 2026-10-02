@@ -13,14 +13,14 @@ const path = require('path')
 // Path to the TypeScript CLI entry point
 const cliPath = path.resolve(__dirname, '../lib/cli/index.ts')
 
-// Run with tsx for excellent TypeScript ES module support
-const child = spawn('npx', ['tsx', cliPath, ...process.argv.slice(2)], {
+// Use the installed tsx entry point through Node; avoid shell-specific npx.cmd lookup.
+const child = spawn(process.execPath, [require.resolve('tsx/cli'), cliPath, ...process.argv.slice(2)], {
   stdio: 'inherit',
   cwd: path.resolve(__dirname, '..')
 })
 
 child.on('exit', (code) => {
-  process.exit(code || 0)
+  process.exit(code === null ? 1 : code)
 })
 
 child.on('error', (error) => {

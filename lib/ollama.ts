@@ -161,6 +161,7 @@ export class OllamaClient {
     try {
       const response = await fetch(`${this.baseUrl}/api/version`, {
         method: 'GET',
+        redirect: 'error',
         signal: AbortSignal.timeout(5000), // Quick health check
       })
       return response.ok
@@ -188,6 +189,7 @@ export class OllamaClient {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         method: 'GET',
+        redirect: 'error',
         signal: AbortSignal.timeout(this.timeout),
       })
 
@@ -268,6 +270,7 @@ export class OllamaClient {
       }, this.timeout)
       const response = await fetch(`${this.baseUrl}/api/generate`, {
         method: 'POST',
+        redirect: 'error',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -333,43 +336,16 @@ export class OllamaClient {
   }
 }
 
-/**
- * Default OllamaClient instance for the application
- * 
- * Uses default settings (localhost:11434, 120s timeout).
- * This is the primary instance used throughout Promptpad.
- * 
- * @example
- * ```typescript
- * import { ollama } from '@/lib/ollama'
- * const result = await ollama.generate('gpt-oss:20b', 'Hello world')
- * ```
- */
-export const ollama = new OllamaClient()
+/** Server configuration is read only by server/CLI modules; browser clients use localhost. */
+export function configuredOllamaTimeout(): number {
+  const value = Number(process.env.OLLAMA_TIMEOUT || 120000)
+  return Number.isFinite(value) && value > 0 ? value : 120000
+}
 
-/**
- * Custom OllamaClient instance with environment variable overrides
- * 
- * Automatically configures using OLLAMA_BASE_URL and OLLAMA_TIMEOUT
- * environment variables if available, otherwise falls back to default instance.
- * 
- * Environment variables:
- * - OLLAMA_BASE_URL: Custom Ollama service URL
- * - OLLAMA_TIMEOUT: Custom timeout in milliseconds
- * 
- * @example
- * ```typescript
- * // With environment variables:
- * // OLLAMA_BASE_URL=http://remote-host:11434
- * // OLLAMA_TIMEOUT=180000
- * import { ollamaCustom } from '@/lib/ollama'
- * const result = await ollamaCustom.generate('gpt-oss:20b', 'Hello world')
- * ```
- */
-export const ollamaCustom = 
-  typeof process !== 'undefined' && process.env.OLLAMA_BASE_URL
-    ? new OllamaClient(
-        process.env.OLLAMA_BASE_URL,
-        parseInt(process.env.OLLAMA_TIMEOUT || '120000', 10)
-      )
-    : ollama
+export const ollama = new OllamaClient(
+  process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+  configuredOllamaTimeout()
+)
+
+/** Compatibility alias: the primary client now honors the same environment settings. */
+export const ollamaCustom = ollama

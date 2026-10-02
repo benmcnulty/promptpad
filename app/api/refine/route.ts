@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { ollama, OllamaError } from '@/lib/ollama'
+import { OllamaError } from '@/lib/ollama'
+import { getServerOllama } from '@/lib/ollama-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,7 @@ interface RefineRequestBody {
 export async function POST(req: Request) {
   let body: Partial<RefineRequestBody> | undefined
   try {
+    const client = getServerOllama(req)
     body = (await req.json()) as Partial<RefineRequestBody>
 
     // Basic contract validation (schema lives in docs/agents/schemas)
@@ -90,7 +92,7 @@ export async function POST(req: Request) {
         console.group(`🔄 Refine API: ${model} (temp=${temperature})`)
         console.log(`📝 Input tokens: ~${body.input?.length || 0} chars`)
         
-        const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
+        const { text: rawText, usage: usagePrimary } = await client.generate(model, prompt, { temperature })
         
         const duration = Date.now() - startTime
   console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
@@ -124,7 +126,7 @@ export async function POST(req: Request) {
         if (needsLLMPostProcess) {
           try {
             const cleanupPrompt = buildCleanupPrompt(cleanedText, 'refine')
-            const { text: cleanedAgain, usage: usageCleanup } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+            const { text: cleanedAgain, usage: usageCleanup } = await client.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
             const finalClean = cleanedAgain
               .replace(/^"([\s\S]*)"$/, '$1')
               .replace(/^`{3,}[a-zA-Z]*\n([\s\S]*?)\n`{3,}$/m, '$1')
@@ -150,7 +152,7 @@ export async function POST(req: Request) {
         console.group(`🔄 Reinforce API: ${model} (temp=${temperature})`)
         console.log(`📝 Draft tokens: ~${body.draft?.length || 0} chars`)
         
-  const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
+  const { text: rawText, usage: usagePrimary } = await client.generate(model, prompt, { temperature })
         
         const duration = Date.now() - startTime
   console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
@@ -179,7 +181,7 @@ export async function POST(req: Request) {
         if (needsLLMPostProcess) {
           try {
             const cleanupPrompt = buildCleanupPrompt(cleanedText, 'reinforce')
-            const { text: cleanedAgain, usage: usageCleanup } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+            const { text: cleanedAgain, usage: usageCleanup } = await client.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
             const finalClean = cleanedAgain
               .replace(/^"([\s\S]*)"$/, '$1')
               .replace(/^`{3,}[a-zA-Z]*\n([\s\S]*?)\n`{3,}$/m, '$1')
@@ -207,7 +209,7 @@ export async function POST(req: Request) {
         console.group(`🔄 Spec API: ${model} (temp=${temperature})`)
         console.log(`📝 Input tokens: ~${body.input?.length || 0} chars`)
         
-  const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
+  const { text: rawText, usage: usagePrimary } = await client.generate(model, prompt, { temperature })
         
         const duration = Date.now() - startTime
   console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
@@ -233,7 +235,7 @@ export async function POST(req: Request) {
         if (needsLLMPostProcess) {
           try {
             const cleanupPrompt = buildCleanupPrompt(cleanedText, 'spec')
-            const { text: cleanedAgain, usage: usageCleanup } = await ollama.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
+            const { text: cleanedAgain, usage: usageCleanup } = await client.generate(model, cleanupPrompt, { temperature: Math.min(temperature, 0.15) })
             const finalClean = cleanedAgain
               .replace(/^"([\s\S]*)"$/, '$1')
               .trim()
@@ -300,6 +302,9 @@ export async function POST(req: Request) {
       throw err
     }
   } catch (error) {
+    if (error instanceof OllamaError && error.code === 'ENDPOINT_NOT_ALLOWED') {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     // High-level error logging for developers
     console.groupCollapsed(`🚨 Refine endpoint error`)
     const mode = body?.mode ?? 'unknown'

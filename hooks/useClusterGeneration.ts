@@ -1,5 +1,6 @@
 "use client"
 
+import { ollamaRequestHeaders } from '@/lib/ollama-request'
 import { useCallback, useState } from 'react'
 import type { 
   WordCluster, 
@@ -14,7 +15,7 @@ export interface GenerationState {
   step: string
 }
 
-export function useClusterGeneration(model: string = 'gpt-oss:20b', temperature: number = 0.2) {
+export function useClusterGeneration(model: string = 'gpt-oss:20b', temperature: number = 0.2, endpointUrl?: string | null) {
   const [state, setState] = useState<GenerationState>({
     loading: false,
     error: null,
@@ -35,7 +36,7 @@ export function useClusterGeneration(model: string = 'gpt-oss:20b', temperature:
 
       const response = await fetch('/api/word-cluster', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: ollamaRequestHeaders(endpointUrl),
         body: JSON.stringify({
           prompt,
           model,
@@ -99,7 +100,7 @@ export function useClusterGeneration(model: string = 'gpt-oss:20b', temperature:
       setState({ loading: false, error: errorMessage, progress: 0, step: 'error' })
       return null
     }
-  }, [model, temperature])
+  }, [model, temperature, endpointUrl])
 
   // Expand a word from an existing cluster
   const expandWord = useCallback(async (
@@ -112,7 +113,7 @@ export function useClusterGeneration(model: string = 'gpt-oss:20b', temperature:
     try {
       const response = await fetch('/api/expand-cluster', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: ollamaRequestHeaders(endpointUrl),
         body: JSON.stringify({
           word,
           parentClusterId: parentCluster.id,
@@ -175,7 +176,7 @@ export function useClusterGeneration(model: string = 'gpt-oss:20b', temperature:
       setState({ loading: false, error: errorMessage, progress: 0, step: 'error' })
       return null
     }
-  }, [model, temperature])
+  }, [model, temperature, endpointUrl])
 
   // Generate multiple clusters in batch (for advanced use cases)
   const generateBatch = useCallback(async (

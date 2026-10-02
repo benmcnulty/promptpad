@@ -16,6 +16,7 @@ interface ModelContextValue {
   models: ModelInfo[]
   selectedModel: string
   selectedEndpointId: string
+  selectedEndpointUrl: string | null | undefined
   setSelectedModel: (name: string, endpointId?: string) => void
   getModelsByEndpoint: (endpointId: string) => ModelInfo[]
   getAllAvailableModels: () => ModelInfo[]
@@ -37,8 +38,10 @@ export function ModelProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
-  const mounted = useRef(false)
-  const { endpoints, getHealthyEndpoints } = useOllamaEndpoints()
+  const { endpoints } = useOllamaEndpoints()
+  // Default means the server-configured endpoint. A missing custom selection must fail explicitly.
+  const selectedEndpointUrl = selectedEndpointId === 'default' ? undefined
+    : endpoints.find(endpoint => endpoint.id === selectedEndpointId)?.url ?? null
 
   // Load preferences
   useEffect(() => {
@@ -72,37 +75,30 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     setError(null)
     
     try {
-      // Aggregate models from all healthy endpoints
+      // List through the same server routes used for generation, including its allowlist.
       const allModels: ModelInfo[] = []
-      const healthyEndpoints = getHealthyEndpoints()
-      
-      if (healthyEndpoints.length === 0) {
-        // Fallback to legacy API if no endpoints are healthy
-        const res = await fetch('/api/models', { signal: ctrl.signal })
-        if (!res.ok) throw new Error(`Models request failed (${res.status})`)
-        const data = await res.json() as ModelInfo[]
-        allModels.push(...data.map(model => ({ 
-          ...model, 
-          endpointId: 'default',
-          endpointLabel: 'Default (localhost)'
-        })))
-      } else {
-        // Fetch models from all healthy endpoints
-        for (const endpoint of healthyEndpoints) {
-          // Use the models already loaded by the endpoint provider
-          const endpointModels = endpoint.models.map(model => ({
-            ...model,
-            endpointId: endpoint.id,
-            endpointLabel: endpoint.label
-          }))
-          allModels.push(...endpointModels)
+      const failures: string[] = []
+      for (const endpoint of endpoints) {
+        const res = await fetch('/api/models', {
+          signal: ctrl.signal,
+          headers: endpoint.id === 'default' ? {} : { 'X-Ollama-Endpoint': endpoint.url },
+        })
+        if (!res.ok) {
+          failures.push(`${endpoint.label}: models request failed (${res.status})`)
+          continue
         }
+        const data = await res.json() as ModelInfo[]
+        allModels.push(...data.map(model => ({
+          ...model, endpointId: endpoint.id,
+          endpointLabel: endpoint.id === 'default' ? 'Server default' : endpoint.label,
+        })))
       }
-      
+      if (ctrl.signal.aborted) return
       setModels(allModels)
+      if (failures.length) setError(failures.join('; '))
       
       // Ensure selected model is valid; otherwise prefer default if present
-      const hasSelected = allModels.some(m => m.name === selectedModel)
+      const hasSelected = allModels.some(m => m.name === selectedModel && m.endpointId === selectedEndpointId)
       const hasDefault = allModels.some(m => m.name === DEFAULT_MODEL)
       if (!hasSelected && hasDefault) {
         const defaultModel = allModels.find(m => m.name === DEFAULT_MODEL)
@@ -112,20 +108,19 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load models')
+      if (!ctrl.signal.aborted) setError(err instanceof Error ? err.message : 'Failed to load models')
     } finally {
-      setLoading(false)
-      controller.current = null
+      if (controller.current === ctrl) {
+        setLoading(false)
+        controller.current = null
+      }
     }
-  }, [selectedModel, getHealthyEndpoints])
+  }, [selectedModel, selectedEndpointId, endpoints])
 
   useEffect(() => {
-    if (mounted.current) return
-    mounted.current = true
     fetchModels()
     return () => {
       if (controller.current) controller.current.abort()
-      mounted.current = false
     }
   }, [fetchModels])
 
@@ -155,13 +150,14 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     models,
     selectedModel,
     selectedEndpointId,
+    selectedEndpointUrl,
     setSelectedModel: setSelectedModelWithEndpoint,
     getModelsByEndpoint,
     getAllAvailableModels,
     loading,
     error,
     refresh: fetchModels,
-  }), [models, selectedModel, selectedEndpointId, setSelectedModelWithEndpoint, getModelsByEndpoint, getAllAvailableModels, loading, error, fetchModels])
+  }), [models, selectedModel, selectedEndpointId, selectedEndpointUrl, setSelectedModelWithEndpoint, getModelsByEndpoint, getAllAvailableModels, loading, error, fetchModels])
 
   return <ModelContext.Provider value={value}>{children}</ModelContext.Provider>
 }

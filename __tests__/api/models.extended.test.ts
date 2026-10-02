@@ -24,13 +24,13 @@ describe('GET /api/models (extended)', () => {
   })
   afterAll(() => { process.env.OLLAMA_MOCK = prevMock })
 
-  it('inserts default when missing', async () => {
+  it('does not advertise the default model when it is not installed', async () => {
     ollama.listModels.mockResolvedValueOnce([{ name: 'llama3.2:8b' }])
     const { GET } = await import('@/app/api/models/route')
     const res: any = await GET()
     const data = await res.json()
-    expect(data[0].name).toBe('gpt-oss:20b')
-    expect(data.find((m: any) => m.name === 'gpt-oss:20b').default).toBe(true)
+    expect(data.map((m: any) => m.name)).toEqual(['llama3.2:8b'])
+    expect(data.find((m: any) => m.name === 'gpt-oss:20b')).toBeUndefined()
   })
 
   it('marks existing default', async () => {

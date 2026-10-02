@@ -20,8 +20,8 @@ export default function DimensionalVisualizerPage() {
   const [input, setInput] = useState('Analyze customer sentiment across reviews for the last 90 days and surface themes.')
   const [output, setOutput] = useState('')
   const [controls, setControls] = useState<ControlsState>({ layout: 'radialSpiral', pointSize: 0.03, edgeOpacity: 0.35, animate: true })
-  const { selectedModel } = useModel()
-  const { run, state } = useRefine(selectedModel, 0.2)
+  const { selectedModel, selectedEndpointUrl } = useModel()
+  const { run, state } = useRefine(selectedModel, 0.2, selectedEndpointUrl)
 
   const visualText = output || `User: ${input}\nAI: The overall sentiment trends positive, with notable clusters around delivery speed, packaging quality, and support responsiveness. Some outliers indicate confusion around return policies.`
   const frame = useMemo(() => vectorizeText(visualText, controls.layout), [visualText, controls.layout])
@@ -35,7 +35,7 @@ export default function DimensionalVisualizerPage() {
             <p className="text-slate-600">
               {mode === 'word-clusters' 
                 ? 'Interactive 3D word association networks' 
-                : '3D Vector Visualization Platform'
+                : 'Deterministic text layout demo (not semantic embeddings)'
               }
             </p>
           </div>

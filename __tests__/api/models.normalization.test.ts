@@ -31,7 +31,6 @@ describe('GET /api/models (normalization variants)', () => {
     const { GET } = await import('@/app/api/models/route')
     const res: any = await GET()
     const data = await res.json()
-    // default inserted at front
     const llama = data.find((m: any) => m.name === 'llama3.2:8b')
     const qwen = data.find((m: any) => m.name === 'qwen2.5')
     const mystery = data.find((m: any) => m.name === 'mysterymodel')

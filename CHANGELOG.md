@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 
 ## [Unreleased]
+### Fixed
+- Honor server/CLI Ollama URL and timeout settings in the primary adapter. Route model catalogs, primary generation and cleanup to the selected endpoint, limited to operator-approved destinations (proposed ADR 001).
+- List installed models without inventing an absent default; reject removed or unapproved endpoint selections before generation or fallback.
+- Report actual Spec request progress and label deterministic token positions as a layout demo.
+- Launch the installed CLI runtime through Node and compare its entry-point URL portably on Windows.
+
 ### Added
 - Dimensional Visualizer demo with Word Cluster Builder (3D cluster navigation with 2D canvas renderer and optional R3F 3D mode)
 - API endpoints for clustering workflows: `POST /api/word-cluster` and `POST /api/expand-cluster` with deterministic mock mode and graceful fallbacks
