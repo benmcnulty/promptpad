@@ -36,7 +36,7 @@ const DEFAULT_VISUALIZATION_OPTIONS: ClusterVisualizationOptions = {
 export default function WordClusterBuilder() {
   const [prompt, setPrompt] = useState('')
   const [visualOptions, setVisualOptions] = useState<ClusterVisualizationOptions>(DEFAULT_VISUALIZATION_OPTIONS)
-  const { selectedModel } = useModel()
+  const { selectedModel, selectedEndpointUrl } = useModel()
   
   const {
     network,
@@ -50,7 +50,7 @@ export default function WordClusterBuilder() {
     getVectorFrame
   } = useClusterNetwork()
 
-  const generation = useClusterGeneration(selectedModel, 0.2)
+  const generation = useClusterGeneration(selectedModel, 0.2, selectedEndpointUrl)
 
   // Handle initial prompt submission
   const handleStartCluster = async (e: React.FormEvent) => {
@@ -190,10 +190,7 @@ export default function WordClusterBuilder() {
                   isLoading={generation.state.loading}
                   loadingStep={generation.state.step}
                   loadingProgress={generation.state.progress}
-                  onWordClick={(word, clusterId) => {
-                    // Handle word clicks in visualization
-                    console.log('Word clicked:', word, 'in cluster:', clusterId)
-                  }}
+                  onWordClick={handleExpandWord}
                 />
                 
                 {/* Visualization Info */}

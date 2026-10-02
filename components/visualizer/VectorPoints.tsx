@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client"
 
-import { useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import { InstancedMesh, Object3D, Color } from 'three'
 import type { VectorFrame } from '@/lib/vectorization'
 
@@ -19,7 +19,7 @@ export default function VectorPoints({ frame, size = 0.03 }: { frame: VectorFram
   }, [frame])
 
   // Position instances
-  useMemo(() => {
+  useLayoutEffect(() => {
     if (!ref.current) return
     for (let i = 0; i < frame.points.length; i++) {
       const p = frame.points[i]

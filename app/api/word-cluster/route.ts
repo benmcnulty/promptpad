@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { ollama, OllamaError } from '@/lib/ollama'
+import { OllamaError } from '@/lib/ollama'
+import { getServerOllama } from '@/lib/ollama-server'
 import type { ClusterGenerationRequest, ClusterGenerationResponse } from '@/lib/vectorization/cluster-types'
 
 export const dynamic = 'force-dynamic'
@@ -12,6 +13,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: Request) {
   let body: Partial<ClusterGenerationRequest> | undefined
   try {
+    const client = getServerOllama(req)
     body = (await req.json()) as Partial<ClusterGenerationRequest>
 
     // Validate request
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
       console.group(`🔗 Word Cluster API: ${model} (temp=${temperature})`)
       console.log(`📝 Input: "${body.prompt}"${body.parentWord ? ` (expanding: ${body.parentWord})` : ''}`)
       
-      const { text: rawText, usage: usagePrimary } = await ollama.generate(model, prompt, { temperature })
+      const { text: rawText, usage: usagePrimary } = await client.generate(model, prompt, { temperature })
       
       const duration = Date.now() - startTime
       console.log(`✅ Response: ${rawText.length} chars in ${duration}ms`)
@@ -97,6 +99,9 @@ export async function POST(req: Request) {
       throw err
     }
   } catch (error) {
+    if (error instanceof OllamaError && error.code === 'ENDPOINT_NOT_ALLOWED') {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     console.groupCollapsed(`🚨 Word cluster endpoint error`)
     const prompt = body?.prompt ?? 'unknown'
     const model = body?.model ?? 'unknown'

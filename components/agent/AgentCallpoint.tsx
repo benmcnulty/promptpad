@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useModel } from '@/components/ModelProvider'
 import { useOllamaEndpoints } from '@/components/OllamaEndpointProvider'
 import { AgentCallpoint as AgentCallpointType } from '@/types/agent'
@@ -28,7 +28,7 @@ export default function AgentCallpoint({
 }: AgentCallpointProps) {
   const { getAllAvailableModels } = useModel()
   const { endpoints, getHealthyEndpoints } = useOllamaEndpoints()
-  const [isExpanded, setIsExpanded] = useState(!callpoint.isCollapsed)
+  const isExpanded = !callpoint.isCollapsed
 
   const allModels = getAllAvailableModels()
   const healthyEndpoints = getHealthyEndpoints()
@@ -49,11 +49,6 @@ export default function AgentCallpoint({
       return acc
     }, {} as Record<string, { label: string; models: typeof allModels }>)
   }, [allModels])
-
-  // Update collapsed state
-  useEffect(() => {
-    onUpdate({ isCollapsed: !isExpanded })
-  }, [isExpanded, onUpdate])
 
   const getStatusIcon = () => {
     if (callpoint.isExecuting) {
@@ -133,7 +128,7 @@ export default function AgentCallpoint({
 
           {/* Collapse/Expand */}
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => onUpdate({ isCollapsed: !callpoint.isCollapsed })}
             className="p-1.5 hover:bg-white/60 rounded-md transition-colors text-slate-600 hover:text-slate-800"
             title={isExpanded ? "Collapse" : "Expand"}
           >
@@ -167,7 +162,9 @@ export default function AgentCallpoint({
               <select
                 value={`${callpoint.endpointId}:${callpoint.modelName}`}
                 onChange={(e) => {
-                  const [endpointId, modelName] = e.target.value.split(':', 2)
+                  const separator = e.target.value.indexOf(':')
+                  const endpointId = separator < 0 ? '' : e.target.value.slice(0, separator)
+                  const modelName = separator < 0 ? '' : e.target.value.slice(separator + 1)
                   onUpdate({ endpointId, modelName })
                 }}
                 className="w-full px-3 py-2 bg-white/70 border border-white/40 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -194,8 +191,11 @@ export default function AgentCallpoint({
                 min="0"
                 max="1"
                 step="0.1"
-                value={callpoint.temperature || 0.2}
-                onChange={(e) => onUpdate({ temperature: parseFloat(e.target.value) || 0.2 })}
+                value={callpoint.temperature ?? 0.2}
+                onChange={(e) => {
+                  const temperature = parseFloat(e.target.value)
+                  onUpdate({ temperature: Number.isFinite(temperature) ? temperature : 0.2 })
+                }}
                 className="w-full px-3 py-2 bg-white/70 border border-white/40 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>

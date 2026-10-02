@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { ollama, OllamaError } from '@/lib/ollama'
+import { OllamaError } from '@/lib/ollama'
+import { getServerOllama } from '@/lib/ollama-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,8 +9,9 @@ export const dynamic = 'force-dynamic'
  * Returns an array of available models per frozen contract.
  * Shape: Array<{ name: string, family: string, parameters: string, default?: boolean }>
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const client = getServerOllama(req)
     // Mock mode for CI and local development without Ollama
     if (process.env.OLLAMA_MOCK === '1') {
       return NextResponse.json([
@@ -18,22 +20,18 @@ export async function GET() {
       ])
     }
 
-    const models = await ollama.listModels()
+    const models = await client.listModels()
 
-    // Ensure gpt-oss:20b appears and is marked default
     const normalized = normalizeModels(models)
-    const hasDefault = normalized.some(m => m.name === 'gpt-oss:20b')
-    if (!hasDefault) {
-      normalized.unshift({ name: 'gpt-oss:20b', family: 'gpt-oss', parameters: '20b', default: true })
-    } else {
-      // Mark default flag on the canonical default
-      normalized.forEach(m => {
-        if (m.name === 'gpt-oss:20b') m.default = true
-      })
-    }
+    normalized.forEach(model => {
+      if (model.name === 'gpt-oss:20b') model.default = true
+    })
 
     return NextResponse.json(normalized)
   } catch (error) {
+    if (error instanceof OllamaError && error.code === 'ENDPOINT_NOT_ALLOWED') {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     // Structured error logging for developers
     console.groupCollapsed(`🚨 Models API error`)
     console.error(`Ollama base URL: ${process.env.OLLAMA_BASE_URL || 'http://localhost:11434'}`)

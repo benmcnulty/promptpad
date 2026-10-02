@@ -53,7 +53,8 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
   const [endpoints, setEndpoints] = useState<OllamaEndpoint[]>([createDefaultEndpoint()])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const mounted = useRef(false)
+  const endpointsRef = useRef(endpoints)
+  endpointsRef.current = endpoints
   const checkingRef = useRef<Set<string>>(new Set())
 
   // Load endpoints from localStorage
@@ -86,24 +87,21 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
 
   // Get client for specific endpoint
   const getEndpointClient = useCallback((id: string): OllamaClient | null => {
-    const endpoint = endpoints.find(ep => ep.id === id)
+    const endpoint = endpointsRef.current.find(ep => ep.id === id)
     if (!endpoint) return null
     return new OllamaClient(endpoint.url)
-  }, [endpoints])
+  }, [])
 
   // Check health of specific endpoint
-  const checkEndpointHealth = useCallback(async (id: string) => {
-    if (checkingRef.current.has(id)) return
-    checkingRef.current.add(id)
-
-    const endpoint = endpoints.find(ep => ep.id === id)
-    if (!endpoint) {
-      checkingRef.current.delete(id)
-      return
-    }
+  const checkEndpointHealth = useCallback(async (id: string, addedEndpoint?: OllamaEndpoint) => {
+    const endpoint = addedEndpoint ?? endpointsRef.current.find(ep => ep.id === id)
+    if (!endpoint) return
+    const checkKey = `${id}:${endpoint.url}`
+    if (checkingRef.current.has(checkKey)) return
+    checkingRef.current.add(checkKey)
 
     setEndpoints(prev => prev.map(ep => 
-      ep.id === id 
+      ep.id === id && ep.url === endpoint.url
         ? { ...ep, healthStatus: 'checking' as const }
         : ep
     ))
@@ -132,7 +130,7 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
       }
 
       setEndpoints(prev => prev.map(ep => 
-        ep.id === id 
+        ep.id === id && ep.url === endpoint.url
           ? { 
               ...ep, 
               healthStatus: isHealthy ? 'healthy' as const : 'error' as const,
@@ -145,7 +143,7 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Connection failed'
       setEndpoints(prev => prev.map(ep => 
-        ep.id === id 
+        ep.id === id && ep.url === endpoint.url
           ? { 
               ...ep, 
               healthStatus: 'error' as const,
@@ -156,9 +154,9 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
           : ep
       ))
     } finally {
-      checkingRef.current.delete(id)
+      checkingRef.current.delete(checkKey)
     }
-  }, [endpoints])
+  }, [])
 
   // Check health of all endpoints
   const checkAllEndpointsHealth = useCallback(async () => {
@@ -166,13 +164,13 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
     setError(null)
     
     try {
-      await Promise.all(endpoints.map(ep => checkEndpointHealth(ep.id)))
+      await Promise.all(endpointsRef.current.map(ep => checkEndpointHealth(ep.id)))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to check endpoint health')
     } finally {
       setLoading(false)
     }
-  }, [endpoints, checkEndpointHealth])
+  }, [checkEndpointHealth])
 
   // Add new endpoint
   const addEndpoint = useCallback(async (label: string, url: string): Promise<OllamaEndpoint> => {
@@ -187,36 +185,39 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
       models: []
     }
 
-    const updatedEndpoints = [...endpoints, newEndpoint]
+    const updatedEndpoints = [...endpointsRef.current, newEndpoint]
+    endpointsRef.current = updatedEndpoints
     setEndpoints(updatedEndpoints)
     persistEndpoints(updatedEndpoints)
 
     // Check health of new endpoint
-    await checkEndpointHealth(id)
+    await checkEndpointHealth(id, newEndpoint)
     
     return newEndpoint
-  }, [endpoints, persistEndpoints, checkEndpointHealth])
+  }, [persistEndpoints, checkEndpointHealth])
 
   // Remove endpoint
   const removeEndpoint = useCallback((id: string) => {
-    const endpoint = endpoints.find(ep => ep.id === id)
+    const endpoint = endpointsRef.current.find(ep => ep.id === id)
     if (endpoint?.isDefault) {
       throw new Error('Cannot remove default endpoint')
     }
 
-    const updatedEndpoints = endpoints.filter(ep => ep.id !== id)
+    const updatedEndpoints = endpointsRef.current.filter(ep => ep.id !== id)
+    endpointsRef.current = updatedEndpoints
     setEndpoints(updatedEndpoints)
     persistEndpoints(updatedEndpoints)
-  }, [endpoints, persistEndpoints])
+  }, [persistEndpoints])
 
   // Update endpoint
   const updateEndpoint = useCallback((id: string, updates: Partial<OllamaEndpoint>) => {
-    const updatedEndpoints = endpoints.map(ep => 
+    const updatedEndpoints = endpointsRef.current.map(ep =>
       ep.id === id ? { ...ep, ...updates } : ep
     )
+    endpointsRef.current = updatedEndpoints
     setEndpoints(updatedEndpoints)
     persistEndpoints(updatedEndpoints)
-  }, [endpoints, persistEndpoints])
+  }, [persistEndpoints])
 
   // Get healthy endpoints
   const getHealthyEndpoints = useCallback(() => {
@@ -225,9 +226,6 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
 
   // Initial health check on mount
   useEffect(() => {
-    if (mounted.current) return
-    mounted.current = true
-    
     // Small delay to allow UI to render before health checks
     const timer = setTimeout(() => {
       checkAllEndpointsHealth()
@@ -235,7 +233,6 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
 
     return () => {
       clearTimeout(timer)
-      mounted.current = false
     }
   }, [checkAllEndpointsHealth])
 

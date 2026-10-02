@@ -1,5 +1,6 @@
 "use client"
 
+import { ollamaRequestHeaders } from '@/lib/ollama-request'
 import { useCallback, useMemo, useState } from 'react'
 
 export type RefineMode = 'refine' | 'reinforce' | 'spec'
@@ -62,12 +63,8 @@ const reinforceSteps: ProgressStep[] = [
 
 const specSteps: ProgressStep[] = [
   { id: 'validate', label: 'Validate input', status: 'pending' },
-  { id: 'analyze', label: 'Analyze requirements', status: 'pending' },
-  { id: 'architecture', label: 'Design architecture', status: 'pending' },
-  { id: 'technology', label: 'Select tech stack', status: 'pending' },
-  { id: 'features', label: 'Define features', status: 'pending' },
-  { id: 'security', label: 'Security planning', status: 'pending' },
-  { id: 'process', label: 'Generate specification', status: 'pending' },
+  { id: 'call', label: 'Generate specification', status: 'pending' },
+  { id: 'process', label: 'Process response', status: 'pending' },
   { id: 'update', label: 'Update document', status: 'pending' },
 ]
 
@@ -96,7 +93,7 @@ function advance(steps: ProgressStep[], id: string, status: StepStatus): Progres
 
 type RunResult = { output: string; patch?: PatchOp[]; systemPrompt?: string; fallbackUsed?: boolean }
 
-export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0.2) {
+export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0.2, endpointUrl?: string | null) {
   const [state, setState] = useState<RefineState>({
     loading: false,
     error: null,
@@ -131,34 +128,7 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
     
     // Handle different step progressions based on mode
     if (mode === 'spec') {
-      // Spec mode has more detailed steps
-      steps = advance(steps, 'analyze', 'in_progress')
-      setState(prev => ({ ...prev, steps }))
-      
-      // Simulate multi-step processing for spec mode
-      await new Promise(resolve => setTimeout(resolve, 500)) // Brief pause for UX
-      steps = advance(steps, 'analyze', 'done')
-      steps = advance(steps, 'architecture', 'in_progress')
-      setState(prev => ({ ...prev, steps }))
-      
-      await new Promise(resolve => setTimeout(resolve, 300))
-      steps = advance(steps, 'architecture', 'done')
-      steps = advance(steps, 'technology', 'in_progress')
-      setState(prev => ({ ...prev, steps }))
-      
-      await new Promise(resolve => setTimeout(resolve, 300))
-      steps = advance(steps, 'technology', 'done')
-      steps = advance(steps, 'features', 'in_progress')
-      setState(prev => ({ ...prev, steps }))
-      
-      await new Promise(resolve => setTimeout(resolve, 300))
-      steps = advance(steps, 'features', 'done')
-      steps = advance(steps, 'security', 'in_progress')
-      setState(prev => ({ ...prev, steps }))
-      
-      await new Promise(resolve => setTimeout(resolve, 300))
-      steps = advance(steps, 'security', 'done')
-      steps = advance(steps, 'process', 'in_progress')
+      steps = advance(steps, 'call', 'in_progress')
       setState(prev => ({ ...prev, steps }))
     } else if (mode === 'reinforce') {
       // Reinforce mode skips prepare step
@@ -181,7 +151,7 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
 
       const res = await fetch('/api/refine', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: ollamaRequestHeaders(endpointUrl),
         body: JSON.stringify(body),
       })
 
@@ -191,17 +161,9 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
 
       const data = await res.json() as RefineResponseBody & { systemPrompt?: string; fallbackUsed?: boolean }
 
-      // Complete the appropriate step based on mode
-      if (mode === 'spec') {
-        steps = advance(steps, 'process', 'done')
-      } else {
-        steps = advance(steps, 'call', 'done')
-        steps = advance(steps, 'process', 'in_progress')
-        setState(prev => ({ ...prev, steps }))
-        
-        steps = advance(steps, 'process', 'done')
-      }
-      
+      steps = advance(steps, 'call', 'done')
+      steps = advance(steps, 'process', 'done')
+
       const { output, usage, patch } = data
       steps = advance(steps, 'update', 'in_progress')
       setState(prev => ({ ...prev, usage, steps }))
@@ -211,13 +173,13 @@ export function useRefine(model: string = 'gpt-oss:20b', temperature: number = 0
       return { output, patch, systemPrompt: data.systemPrompt, fallbackUsed: data.fallbackUsed }
     } catch (err) {
       // Handle errors for the appropriate step
-      const errorStep = mode === 'spec' ? 'process' : 'call'
+      const errorStep = 'call'
       steps = advance(steps, errorStep, 'error')
       const msg = err instanceof Error ? err.message : 'Unexpected error'
       setState({ loading: false, error: msg, usage: null, steps })
       return null
     }
-  }, [model, temperature])
+  }, [model, temperature, endpointUrl])
 
   const statusSummary = useMemo(() => {
     const current = state.steps.find(s => s.status === 'in_progress')

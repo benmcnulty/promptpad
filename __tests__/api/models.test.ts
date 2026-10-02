@@ -20,7 +20,7 @@ describe('GET /api/models (contract)', () => {
 
   it('returns an array of models with default gpt-oss:20b', async () => {
     const { GET } = await import('@/app/api/models/route')
-    const res: any = await GET()
+    const res: any = await GET({ headers: { get: () => null } } as unknown as Request)
     expect(res.ok).toBe(true)
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)

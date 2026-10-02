@@ -10,11 +10,11 @@ import { useDebug } from "@/components/DebugProvider";
 import { useWelcome } from "@/components/WelcomeProvider";
 
 export default function PromptEnhancerPage() {
-  const { selectedModel } = useModel()
+  const { selectedModel, selectedEndpointUrl } = useModel()
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
-  const { state, statusSummary, run, reset } = useRefine(selectedModel, 0.2);
+  const { state, statusSummary, run, reset } = useRefine(selectedModel, 0.2, selectedEndpointUrl);
   const { addDebugLog } = useDebug()
   const { showWelcome, dontShowAgain, setDontShowAgain, dismissWelcome } = useWelcome()
 

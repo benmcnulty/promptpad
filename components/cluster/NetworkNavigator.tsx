@@ -29,7 +29,7 @@ export default function NetworkNavigator({
   // Calculate network statistics
   const networkStats = useMemo(() => {
     const totalWords = clusters.reduce((sum, cluster) => sum + cluster.words.length, 0)
-    const maxDepth = Math.max(...clusters.map(c => c.depth))
+    const maxDepth = Math.max(0, ...clusters.map(c => c.depth))
     const totalConnections = clusters.reduce((sum, cluster) => sum + cluster.connections.length, 0)
     
     return {
@@ -45,7 +45,7 @@ export default function NetworkNavigator({
   }
 
   const handleBreadcrumbClick = (index: number) => {
-    const stepsBack = breadcrumbs.length - index
+    const stepsBack = breadcrumbs.length - index - 1
     if (stepsBack > 0) {
       onNavigateBack(stepsBack)
     }
