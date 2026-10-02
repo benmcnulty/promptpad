@@ -70,6 +70,13 @@ updates only on a user toggle. This prevents unsaved local expansion from
 overwriting a freshly loaded saved state or marking that load dirty. The added
 regression reloads a collapsed workflow twice without remounting its callpoint,
 then verifies the reverse expanded-state reload. Drawing tests restore the
-original `window.matchMedia` descriptor after each test. Validation of this
-follow-up awaits the coordinator's next local testing slot; results above apply
-to the prior candidate.
+original `window.matchMedia` descriptor after each test. At exact candidate
+`8534ebf220183cedf200a76d364395808baad2ae`, coordinator-approved local validation
+passed the focused reload/drawing batch (3 suites / 17 tests) and the sequential
+full run: 66 suites / 294 tests, zero skips; unchanged coverage gates, typecheck,
+lint with zero warnings, production build and CLI help. Global coverage was
+85.96% statements, 74.56% branches, 87.57% lines and 86.69% functions; the
+separately gated core thresholds also passed. Existing TikToken WASM heuristic
+fallback and stale Browserslist build warnings remain. Network/GPU boundaries
+are mocked; these results do not establish real inference or WebGL rendering.
+CLI entry remains at 0% in Jest, and some page/disabled-3D flows remain uncovered.
