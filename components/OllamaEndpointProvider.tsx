@@ -250,7 +250,7 @@ export function OllamaEndpointProvider({ children }: { children: ReactNode }) {
   // Update localStorage whenever endpoints change
   useEffect(() => {
     persistEndpoints(endpoints)
-  }, [persistEndpoints])
+  }, [endpoints, persistEndpoints])
 
   const value = useMemo<OllamaEndpointContextValue>(() => ({
     endpoints,

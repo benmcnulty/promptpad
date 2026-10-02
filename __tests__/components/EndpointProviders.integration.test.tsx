@@ -71,6 +71,8 @@ describe('real endpoint and model providers', () => {
     mount()
     await tick(100)
     expect(screen.getByTestId('health')).toHaveTextContent('default:healthy,remote:healthy')
+    expect(JSON.parse(localStorage.getItem('promptpad-ollama-endpoints')!).map((ep: { healthStatus: string }) => ep.healthStatus))
+      .toEqual(['healthy', 'healthy'])
     const catalog = () => fetchMock.mock.calls.filter(([url]) => url === '/api/models')
     const health = () => fetchMock.mock.calls.filter(([url]) => url.endsWith('/api/version'))
     expect(catalog()).toHaveLength(2)
@@ -118,7 +120,7 @@ describe('real endpoint and model providers', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Refine' }))
     await tick()
     expect(screen.getByTestId('selection')).toHaveTextContent(`${modelName}|default|server`)
-    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/refine').at(-1)?.[1].headers)
+    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/refine').slice(-1)[0]?.[1].headers)
       .toEqual({ 'Content-Type': 'application/json' })
   })
 
@@ -131,7 +133,7 @@ describe('real endpoint and model providers', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Choose LAN' }))
     await tick()
     expect(screen.getByLabelText('Ollama status: error')).toBeInTheDocument()
-    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/models').at(-1)?.[1].headers)
+    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/models').slice(-1)[0]?.[1].headers)
       .toEqual({ 'Content-Type': 'application/json', 'X-Ollama-Endpoint': remoteUrl })
     fireEvent.click(screen.getByRole('button', { name: 'Remove LAN' }))
     await tick()
@@ -152,7 +154,7 @@ describe('real endpoint and model providers', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Choose LAN' }))
     await tick()
-    const remoteSignal = fetchMock.mock.calls.filter(([url]) => url === '/api/models').at(-1)?.[1].signal
+    const remoteSignal = fetchMock.mock.calls.filter(([url]) => url === '/api/models').slice(-1)[0]?.[1].signal
     fireEvent.click(screen.getByRole('button', { name: 'Choose default' }))
     await tick()
     expect(remoteSignal.aborted).toBe(true)
