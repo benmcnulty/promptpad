@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from '@/components/ThemeProvider'
 import ThemeDropdown from '@/components/ThemeDropdown'
 import ModelDropdown from '@/components/ModelDropdown'
+import { useModel } from '@/components/ModelProvider'
+import { ollamaRequestHeaders } from '@/lib/ollama-request'
 
 interface StatusBarProps {
   className?: string
@@ -14,10 +16,8 @@ interface StatusBarProps {
 export default function StatusBar({ className = '', onDebugToggle, debugOpen = false }: StatusBarProps) {
   const [gitSha, setGitSha] = useState<string>('loading...')
   const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'connected' | 'error'>('checking')
-  const inFlight = useRef<AbortController | null>(null)
-  const intervalId = useRef<number | null>(null)
-  const mounted = useRef<boolean>(false)
   const { theme, toggleTheme } = useTheme()
+  const { selectedEndpointUrl } = useModel()
 
   useEffect(() => {
     // Get git SHA from build time or runtime
@@ -36,27 +36,27 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
       }
     }
     getGitSha()
-    
-    // Check Ollama connection via API
-    if (mounted.current) return
-    mounted.current = true
+  }, [])
+
+  useEffect(() => {
+    let inFlight: AbortController | null = null
+    let intervalId: number | null = null
 
     const checkOllamaStatus = async () => {
-      if (inFlight.current) {
-        inFlight.current.abort()
-        inFlight.current = null
+      if (inFlight) {
+        inFlight.abort()
+        inFlight = null
       }
       setOllamaStatus('checking')
       const ctrl = new AbortController()
-      inFlight.current = ctrl
+      inFlight = ctrl
       try {
-        const response = await fetch('/api/models', { signal: ctrl.signal })
-        if (response.ok) setOllamaStatus('connected')
-        else setOllamaStatus('error')
-      } catch (error) {
-        setOllamaStatus('error')
+        const response = await fetch('/api/models', { signal: ctrl.signal, headers: ollamaRequestHeaders(selectedEndpointUrl) })
+        if (!ctrl.signal.aborted) setOllamaStatus(response.ok ? 'connected' : 'error')
+      } catch {
+        if (!ctrl.signal.aborted) setOllamaStatus('error')
       } finally {
-        inFlight.current = null
+        if (inFlight === ctrl) inFlight = null
       }
     }
 
@@ -65,16 +65,16 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
 
     // Poll every 30 seconds with simple visibility-aware behavior
     const startPolling = () => {
-      if (intervalId.current !== null) return
-      intervalId.current = window.setInterval(() => {
+      if (intervalId !== null) return
+      intervalId = window.setInterval(() => {
         if (document.hidden) return
         checkOllamaStatus()
       }, 30000)
     }
     const stopPolling = () => {
-      if (intervalId.current !== null) {
-        clearInterval(intervalId.current)
-        intervalId.current = null
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+        intervalId = null
       }
     }
 
@@ -89,10 +89,9 @@ export default function StatusBar({ className = '', onDebugToggle, debugOpen = f
     return () => {
       document.removeEventListener('visibilitychange', onVisibility)
       stopPolling()
-      if (inFlight.current) inFlight.current.abort()
-      mounted.current = false
+      if (inFlight) inFlight.abort()
     }
-  }, [])
+  }, [selectedEndpointUrl])
 
   return (
     <div 

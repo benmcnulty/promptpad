@@ -45,10 +45,11 @@ describe('model catalog and endpoint consistency', () => {
     expect(global.fetch).toHaveBeenCalledWith('/api/models', expect.objectContaining({ headers: { 'X-Ollama-Endpoint': 'http://ollama-lan:11434' } }))
   })
 
-  it('does not preserve an unavailable endpoint/model pair just because the name exists elsewhere', async () => {
+  it('preserves an unavailable saved pair until the user deliberately chooses a replacement', async () => {
     localStorage.setItem('promptpad-model', 'shared:7b')
     localStorage.setItem('promptpad-endpoint', 'remote')
     catalog(['shared:7b'], ['other:7b'])
-    await waitFor(() => expect(screen.getByTestId('selection')).toHaveTextContent('shared:7b|default|server'))
+    await waitFor(() => expect(screen.getByTestId('catalog')).toHaveTextContent('other:7b|remote'))
+    expect(screen.getByTestId('selection')).toHaveTextContent('shared:7b|remote|http://ollama-lan:11434')
   })
 })

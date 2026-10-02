@@ -11,7 +11,7 @@ The model selector remembers an endpoint, but generation previously sent only th
 
 The primary server/CLI client honors the existing environment variables. Browser requests may select an additional endpoint using the optional `X-Ollama-Endpoint` header. The server accepts only its configured default URL or exact URLs in the operator's comma-separated `OLLAMA_ALLOWED_ENDPOINTS`. URLs containing credentials, query strings, fragments, or non-HTTP protocols are rejected. Fetch redirects are rejected. Unauthorized selections return HTTP 400 before mock or fallback generation.
 
-The model catalog uses the same server routing as refinement and clustering. It lists installed models rather than inserting an absent default. All generation and normalization passes use the resolved client. A deleted selection fails explicitly.
+The model catalog uses the same server routing as refinement and clustering. It lists installed models rather than inserting an absent default. All generation and normalization passes use the resolved client. A deleted selection remains invalid until the user deliberately chooses a replacement; it fails before generation rather than switching destinations when a catalog request finishes. Status checks use that same selected route.
 
 The existing route names, JSON request/response properties and patch representation remain unchanged. This is an optional transport header, documented here because endpoint choice changes request routing. No merge or release is authorized by this proposed ADR.
 

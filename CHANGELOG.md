@@ -8,6 +8,7 @@ The format is based on Keep a Changelog and this project adheres to SemVer 0.x.
 ### Fixed
 - Honor server/CLI Ollama URL and timeout settings in the primary adapter. Route model catalogs, primary generation and cleanup to the selected endpoint, limited to operator-approved destinations (proposed ADR 001).
 - List installed models without inventing an absent default; reject removed or unapproved endpoint selections before generation or fallback.
+- Stabilize health/catalog effects, retain removed selections until a deliberate replacement, and check connection status against the selected route.
 - Report actual Spec request progress and label deterministic token positions as a layout demo.
 - Launch the installed CLI runtime through Node and compare its entry-point URL portably on Windows.
 

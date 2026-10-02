@@ -10,3 +10,16 @@
 - Risks: no real Ollama/LAN/DNS/CORS, full browser/accessibility or optional 3D verification. Generation remains a soft timeout; allowlisting is not authentication or DNS isolation. Build warned about a missing server tiktoken WASM file and used heuristic counts.
 - Follow-ups: address the existing global coverage gap and token WASM packaging before claiming readiness. See [dated verification](../verification-2026-10-02.md) and [ADR 001](../adr/001-server-endpoint-selection.md).
 - Delivery: draft PR only. `queue:ready`, merges and releases are excluded by user authorization and are not claimed.
+
+### Independent-review follow-up, prepared
+
+Health metadata no longer changes the catalog destination list or re-arms mount
+checks. Newly added endpoints are checked from their actual snapshot. Saved,
+custom and removed selections require a deliberate replacement; status checks
+use that selection and ignore superseded responses. A real-provider integration
+suite exercises timer cadence, adding/deleting endpoints, generation blocking
+and selected/unapproved status. Runtime validation for this follow-up is pending
+the shared Zora test slot; prior counts above describe the earlier candidate.
+
+Prepared CI uses read-only contents permission, mock inference and no deployment
+steps. It preserves the current coverage threshold and reports its failure.

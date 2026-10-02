@@ -38,7 +38,14 @@ export function ModelProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
+  const selection = useRef({ model: DEFAULT_MODEL, endpointId: 'default', allowInitialDefault: true })
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false)
   const { endpoints } = useOllamaEndpoints()
+  // Health/model metadata changes do not change the server catalog destinations.
+  const endpointConfigKey = JSON.stringify(endpoints.map(({ id, label, url }) => ({ id, label, url })))
+  const endpointConfigurations = useMemo(() => JSON.parse(endpointConfigKey) as Array<{
+    id: string; label: string; url: string
+  }>, [endpointConfigKey])
   // Default means the server-configured endpoint. A missing custom selection must fail explicitly.
   const selectedEndpointUrl = selectedEndpointId === 'default' ? undefined
     : endpoints.find(endpoint => endpoint.id === selectedEndpointId)?.url ?? null
@@ -50,12 +57,17 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       const storedEndpoint = localStorage.getItem(ENDPOINT_KEY)
       
       if (storedModel && typeof storedModel === 'string') {
+        selection.current.model = storedModel
+        selection.current.allowInitialDefault = false
         setSelected(storedModel)
       }
       if (storedEndpoint && typeof storedEndpoint === 'string') {
+        selection.current.endpointId = storedEndpoint
+        if (storedEndpoint !== 'default') selection.current.allowInitialDefault = false
         setSelectedEndpointId(storedEndpoint)
       }
     } catch {}
+    setPreferencesLoaded(true)
   }, [])
 
   // Persist preferences
@@ -78,7 +90,7 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       // List through the same server routes used for generation, including its allowlist.
       const allModels: ModelInfo[] = []
       const failures: string[] = []
-      for (const endpoint of endpoints) {
+      for (const endpoint of endpointConfigurations) {
         const res = await fetch('/api/models', {
           signal: ctrl.signal,
           headers: endpoint.id === 'default' ? {} : { 'X-Ollama-Endpoint': endpoint.url },
@@ -97,13 +109,16 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       setModels(allModels)
       if (failures.length) setError(failures.join('; '))
       
-      // Ensure selected model is valid; otherwise prefer default if present
-      const hasSelected = allModels.some(m => m.name === selectedModel && m.endpointId === selectedEndpointId)
-      if (!hasSelected && allModels.length) {
-        const available = allModels.find(m => m.name === DEFAULT_MODEL) || allModels[0]
-        setSelected(available.name)
-        if (available.endpointId) {
-          setSelectedEndpointId(available.endpointId)
+      // Pick an installed server-default model only during first-use initialization.
+      // Saved/custom selections and removed endpoints require a deliberate user choice.
+      const current = selection.current
+      const hasSelected = allModels.some(m => m.name === current.model && m.endpointId === current.endpointId)
+      if (!hasSelected && current.allowInitialDefault && current.endpointId === 'default') {
+        const defaultModels = allModels.filter(m => m.endpointId === 'default')
+        const available = defaultModels.find(m => m.name === DEFAULT_MODEL) || defaultModels[0]
+        if (available) {
+          selection.current = { model: available.name, endpointId: 'default', allowInitialDefault: false }
+          setSelected(available.name)
         }
       }
     } catch (err) {
@@ -114,14 +129,15 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         controller.current = null
       }
     }
-  }, [selectedModel, selectedEndpointId, endpoints])
+  }, [endpointConfigurations])
 
   useEffect(() => {
+    if (!preferencesLoaded) return
     fetchModels()
     return () => {
       if (controller.current) controller.current.abort()
     }
-  }, [fetchModels])
+  }, [fetchModels, preferencesLoaded])
 
   // Helper functions
   const getModelsByEndpoint = useCallback((endpointId: string) => {
@@ -133,16 +149,10 @@ export function ModelProvider({ children }: { children: ReactNode }) {
   }, [models])
 
   const setSelectedModelWithEndpoint = useCallback((name: string, endpointId?: string) => {
+    const chosenEndpoint = endpointId ?? models.find(m => m.name === name)?.endpointId ?? selection.current.endpointId
+    selection.current = { model: name, endpointId: chosenEndpoint, allowInitialDefault: false }
     setSelected(name)
-    if (endpointId) {
-      setSelectedEndpointId(endpointId)
-    } else {
-      // Find the endpoint for this model
-      const model = models.find(m => m.name === name)
-      if (model?.endpointId) {
-        setSelectedEndpointId(model.endpointId)
-      }
-    }
+    setSelectedEndpointId(chosenEndpoint)
   }, [models])
 
   const value = useMemo<ModelContextValue>(() => ({
