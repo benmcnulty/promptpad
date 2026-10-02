@@ -1,5 +1,15 @@
 # Verification receipt: 2026-10-02
 
+> **Superseded historical receipt:** The observations below describe an earlier
+> endpoint candidate, including its coverage failure, and are preserved as history.
+> Independently reviewed source `897eb28560f6edce31476026fa5fc9d32bc0a839` passed
+> 66 suites / 294 tests with zero skips and all unchanged core/global gates:
+> statements 85.96%, branches 74.56%, lines 87.57%, functions 86.69%.
+> [Exact-source full CI 37007105881](https://github.com/benmcnulty/promptpad/actions/runs/37007105881)
+> is green; see the [current devlog](devlog/PR-3.md) for the reviewed regression
+> evidence. The prior coverage blocker is resolved. Mocked-network/GPU and
+> runtime/security limits remain; this does not certify live inference or WebGL.
+
 Baseline: `16c5efd3074ea4d3c1df13e239e927a88204d66b`. The checks below include the independent-review provider corrections. Environment: Windows 11, Node 24.21.0, task-local pnpm 9.15.9, frozen committed lockfile. No live Ollama or paid provider calls were made.
 
 The focused fix routes model catalogs, primary generation and cleanup to the approved selected endpoint, honors the documented environment settings, and preserves the JSON/patch contracts. Tests also cover identical model names on different endpoints, an absent default model, stale endpoint/model pairs and removed selections.
